@@ -1,12 +1,13 @@
 package com.fidechat.database.models;
 
-public class UserChannel extends BaseModel<UserChannel> {
+import java.sql.Timestamp;
+
+public class UserChannel {
     private String userId;
     private String channelId;
+    private Timestamp createdAt;
 
-    public UserChannel() {
-        super();
-    }
+    public UserChannel() {}
 
     public UserChannel(String userId, String channelId) {
         this.userId = userId;
@@ -28,6 +29,15 @@ public class UserChannel extends BaseModel<UserChannel> {
 
     public UserChannel setUserId(String userId) {
         this.userId = userId;
+        return this;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public UserChannel setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
         return this;
     }
 

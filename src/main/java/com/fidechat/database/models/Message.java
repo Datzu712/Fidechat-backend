@@ -1,16 +1,19 @@
 package com.fidechat.database.models;
 
-public class Message extends BaseModel<Message> {
+import java.sql.Timestamp;
+
+public class Message {
+    private String id;
     private String authorId;
     private String content;
     private String channelId;
 
-    public Message() {
-        super();
-    }
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
 
-    public Message(String name, String authorId, String content, String channelId) {
-        this.setName(name);
+    public Message() {}
+
+    public Message(String authorId, String content, String channelId) {
         this.authorId = authorId;
         this.content = content;
         this.channelId = channelId;
@@ -43,5 +46,30 @@ public class Message extends BaseModel<Message> {
         return this;
     }
 
-    
+    public String getId() {
+        return id;
+    }
+
+    public Message setId(String id) {
+        this.id = id;
+        return this;
+    }
+
+    public Timestamp getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public Message setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+        return this;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return this.updatedAt;
+    }
+
+    public Message setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+        return this;
+    }
 }

@@ -5,10 +5,12 @@ import com.fidechat.repositories.UserRepository;
 
 public class Main {
     public static void main(String[] args) {
-        User user = new User("Michael Knight", "sx@dx.com", "password");
+        User user = new User();
+        user.setName("don");
+        user.setEmail("sx@dx.com");
         UserRepository userRepository = new UserRepository();
 
-        userRepository.insertOne(user);
+        System.out.println(userRepository.queryByCriteria(user, "OR"));
 
     }
 }
