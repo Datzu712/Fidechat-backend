@@ -1,16 +1,26 @@
 package com.fidechat;
 
-import com.fidechat.database.models.User;
-import com.fidechat.repositories.UserRepository;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-public class Main {
+@SpringBootApplication
+@EnableWebSocket
+public class Main implements WebSocketConfigurer {
     public static void main(String[] args) {
-        User user = new User();
-        user.setName("don");
-        user.setEmail("sx@dx.com");
-        UserRepository userRepository = new UserRepository();
+        SpringApplication.run(Main.class, args);
+    }
 
-        System.out.println(userRepository.queryByCriteria(user, "OR"));
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(webSocketHandler(), "/ws").setAllowedOrigins("*");
+    }
 
+    @Bean
+    WebSocketHandler webSocketHandler() {
+        return new WebSocketHandler();
     }
 }
