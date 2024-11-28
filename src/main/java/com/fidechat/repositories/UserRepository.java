@@ -67,16 +67,15 @@ public class UserRepository {
         }
     }
 
-    public void insertOne(User user) {
+    public void insertOne(User user) throws SQLException {
         String sql = "INSERT INTO \"user\" (name, email, hashed_password) VALUES (?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, user.getName());
-            pstmt.setString(2, user.getEmail());
-            pstmt.setString(3, user.getHashedPassword());
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+
+        PreparedStatement pstmt = connection.prepareStatement(sql);
+
+        pstmt.setString(1, user.getName());
+        pstmt.setString(2, user.getEmail());
+        pstmt.setString(3, user.getHashedPassword());
+        pstmt.executeUpdate();
     }
 
     public void updateOneById(User user, String id) {
