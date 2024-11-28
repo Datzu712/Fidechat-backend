@@ -27,6 +27,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         System.out.println("Received message: " + message.getPayload());
         session.sendMessage(new TextMessage("Received: " + message.getPayload()));
+        sendMessageToAllSessions("message", message.getPayload());
     }
 
     public void sendMessageToAllSessions(String event, Object data) {
