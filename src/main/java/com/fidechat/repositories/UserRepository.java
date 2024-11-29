@@ -1,6 +1,6 @@
 package com.fidechat.repositories;
 
-import com.fidechat.database.models.User;
+import com.fidechat.database.models.UserModel;
 import com.fidechat.utils.AppLogger;
 import com.fidechat.database.DatabaseManager;
 
@@ -22,13 +22,13 @@ public class UserRepository {
         }
     }
 
-    public User findOneById(String id) {
+    public UserModel findOneById(String id) {
         String sql = "SELECT id, name, email FROM \"user\" WHERE id = ?::uuid";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return new User()
+                return new UserModel()
                     .setId(rs.getString("id"))
                     .setName(rs.getString("name"))
                     .setEmail(rs.getString("email"));
@@ -39,13 +39,13 @@ public class UserRepository {
         return null;
     }
 
-    public List<User> findAll() {
+    public List<UserModel> findAll() {
         String sql = "SELECT id, name, email FROM \"user\"";
-        List<User> users = new ArrayList<>();
+        List<UserModel> UserModels = new ArrayList<>();
         try (ResultSet rs = connection.createStatement().executeQuery(sql)) {
             while (rs.next()) {
-                users.add(
-                    new User()
+                UserModels.add(
+                    new UserModel()
                         .setId(rs.getString("id"))
                         .setName(rs.getString("name"))
                         .setEmail(rs.getString("email"))
@@ -54,7 +54,7 @@ public class UserRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return users;
+        return UserModels;
     }
 
     public void deleteOneById(String id) {
@@ -67,23 +67,23 @@ public class UserRepository {
         }
     }
 
-    public void insertOne(User user) throws SQLException {
+    public void insertOne(UserModel UserModel) throws SQLException {
         String sql = "INSERT INTO \"user\" (name, email, hashed_password) VALUES (?, ?, ?)";
 
         PreparedStatement pstmt = connection.prepareStatement(sql);
 
-        pstmt.setString(1, user.getName());
-        pstmt.setString(2, user.getEmail());
-        pstmt.setString(3, user.getHashedPassword());
+        pstmt.setString(1, UserModel.getName());
+        pstmt.setString(2, UserModel.getEmail());
+        pstmt.setString(3, UserModel.getHashedPassword());
         pstmt.executeUpdate();
     }
 
-    public void updateOneById(User user, String id) {
+    public void updateOneById(UserModel UserModel, String id) {
         String sql = "UPDATE \"user\" SET (name, email, hashed_password) VALUES (?, ?, ?) WHERE id = ?:: uuid";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, user.getName());
-            pstmt.setString(2, user.getEmail());
-            pstmt.setString(3, user.getHashedPassword());
+            pstmt.setString(1, UserModel.getName());
+            pstmt.setString(2, UserModel.getEmail());
+            pstmt.setString(3, UserModel.getHashedPassword());
             pstmt.setString(4, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -91,36 +91,49 @@ public class UserRepository {
         }
     }
 
-    public List<User> queryByCriteria(User user) {
-        return queryByCriteria(user, "AND");
+    public UserModel queryOneByCriteria(UserModel UserModel) {
+        List<UserModel> foundUserModels = this.queryByCriteria(UserModel);
+        if (foundUserModels.size() == 0) {
+            return null;
+        }
+
+        if (foundUserModels.size() > 1) {
+            System.out.println("Warning: Found more of 1 UserModel");
+        }
+
+        return foundUserModels.get(0);
     }
 
-    public List<User> queryByCriteria(User user, String condition) {
-        List<User> users = new ArrayList<>();
+    public List<UserModel> queryByCriteria(UserModel UserModel) {
+        return queryByCriteria(UserModel, "AND");
+    }
+
+    public List<UserModel> queryByCriteria(UserModel UserModel, String condition) {
+        List<UserModel> UserModels = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT id, name, hashed_password, email, created_at, updated_at FROM \"user\" WHERE");
         List<Object> parameters = new ArrayList<>();
         List<String> properties = new ArrayList<>();
 
-        if (user.getId() != null) {
+        if (UserModel.getId() != null) {
             properties.add("id = ?::uuid");
-            parameters.add(user.getId());
+            parameters.add(UserModel.getId());
         }
-        if (user.getName() != null) {
+        if (UserModel.getName() != null) {
             properties.add("name = ?");
-            parameters.add(user.getName());
+            parameters.add(UserModel.getName());
         }
-        if (user.getEmail() != null) {
+        if (UserModel.getEmail() != null) {
             properties.add("email = ?");
-            parameters.add(user.getEmail());
+            parameters.add(UserModel.getEmail());
         }
-        if (user.getCreatedAt() != null) {
+        if (UserModel.getCreatedAt() != null) {
             properties.add("created_at = ?");
-            parameters.add(user.getCreatedAt());
+            parameters.add(UserModel.getCreatedAt());
         }
 
-        if (user.getUpdatedAt() != null) {
+        if (UserModel.getUpdatedAt() != null) {
             properties.add("updated_at = ?");
-            parameters.add(user.getUpdatedAt());
+            parameters.add(UserModel.getUpdatedAt());
         }
 
         sql.append(" ").append(String.join(" " + condition + " ", properties));
@@ -133,8 +146,8 @@ public class UserRepository {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     System.out.println(rs.getTimestamp("created_at"));
-                    users.add(
-                        new User()
+                    UserModels.add(
+                        new UserModel()
                             .setId(rs.getString("id"))
                             .setName(rs.getString("name"))
                             .setEmail(rs.getString("email"))
@@ -147,6 +160,6 @@ public class UserRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return users;
+        return UserModels;
     }
 }

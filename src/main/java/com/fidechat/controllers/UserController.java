@@ -1,5 +1,6 @@
 package com.fidechat.controllers;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -9,8 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fidechat.database.models.User;
+import com.fidechat.database.models.UserModel;
 import com.fidechat.repositories.UserRepository;
+import com.fidechat.services.UserService;
 
 import java.util.List;
 
@@ -18,20 +20,21 @@ import java.util.List;
 @RequestMapping("/api/user")
 public class UserController {
     private final UserRepository userRepositoryC = new UserRepository();
+    private final UserService userService = new UserService();
 
     @GetMapping()
-    public List<User> findAll() {
+    public List<UserModel> findAll() {
         return this.userRepositoryC.findAll();
     }
 
     @GetMapping("/{id}")
-    public User findUserById(@PathVariable String id) {
+    public UserModel findUserById(@PathVariable String id) {
         return this.userRepositoryC.findOneById(id);
     }
 
     @PostMapping()
-    public void createUser(@RequestBody User user) {
-        this.userRepositoryC.insertOne(user);
+    public ResponseEntity<String> createUser(@RequestBody UserModel user) {
+        return this.userService.createUser(user);
     }
 
     @DeleteMapping("/{id}")
@@ -40,7 +43,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public void updateUser(@PathVariable String id, @RequestBody User user) {
+    public void updateUser(@PathVariable String id, @RequestBody UserModel user) {
         this.userRepositoryC.updateOneById(user, id);
     }
 }

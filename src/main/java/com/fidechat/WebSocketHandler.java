@@ -4,9 +4,13 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import jakarta.servlet.http.Cookie;
+
+import jakarta.servlet.http.HttpSession;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class WebSocketHandler extends TextWebSocketHandler {
@@ -15,6 +19,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        session.getAttributes();
         sessions.add(session);
     }
 

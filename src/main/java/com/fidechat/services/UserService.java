@@ -7,15 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 
-import com.fidechat.database.models.User;
+import com.fidechat.database.models.UserModel;
 import com.fidechat.entities.Response;
 
 @Service
 public class UserService {
     private final UserRepository userRepository = new UserRepository();
 
-    public ResponseEntity<String> createUser(User user) {
-        User existingUser = new User()
+    public ResponseEntity<String> createUser(UserModel user) {
+        UserModel existingUser = new UserModel()
             .setEmail(user.getEmail())
             .setName(user.getName());
 
