@@ -9,16 +9,19 @@ import com.fidechat.services.AuthService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
 public class AuthController {
     AuthService authService = new AuthService();
 
     @PostMapping("login")
+    @CrossOrigin(origins = "*")
     public ResponseEntity<String> login(@RequestBody AuthReqBody authReqBody, HttpServletResponse res) {
         return this.authService.login(authReqBody.getEmail(), authReqBody.getPassword(), res);
     }
