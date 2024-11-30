@@ -15,7 +15,7 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 
 import com.fidechat.repositories.UserRepository;
 import com.fidechat.utils.AppLogger;
-import com.fidechat.database.models.User;
+import com.fidechat.database.models.UserModel;
 
 
 @Service
@@ -24,9 +24,9 @@ public class AuthService {
     private Dotenv config = Dotenv.load();
 
     public ResponseEntity<String> login(String email, String password, HttpServletResponse res) {
-        User criteria = new User().setEmail(email);
+        UserModel criteria = new UserModel().setEmail(email);
 
-        User targetUser = userRepository.queryOneByCriteria(criteria);
+        UserModel targetUser = userRepository.queryOneByCriteria(criteria);
         if (targetUser == null || !targetUser.checkPassword(password)) {
             return ResponseEntity.status(401).body("Incorrect email or password");
         }
@@ -62,9 +62,9 @@ public class AuthService {
             DecodedJWT jwt = verifier.verify(JWTtoken);
             String userId = jwt.getSubject();
 
-            User targetUser = this.userRepository.findOneById(userId);
+            UserModel targetUser = this.userRepository.findOneById(userId);
             if (targetUser == null) {
-                return ResponseEntity.status(404).body("User not found");
+                return ResponseEntity.status(404).body("UserModel not found");
             }
             return ResponseEntity.ok("\"token\": \"" + JWTtoken + "\"");
 
