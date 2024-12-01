@@ -68,4 +68,8 @@ public class Channel {
         this.ownerId = ownerId;
         return this;
     }
+
+    public String toJSON() {
+        return "{\"id\": \"" + this.id + "\", \"name\": \"" + this.name + "\", \"description\": \"" + this.description + "\"}";
+    }
 }

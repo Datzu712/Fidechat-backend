@@ -30,8 +30,9 @@ public class Main implements WebSocketConfigurer {
         CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
         loggingFilter.setIncludeClientInfo(true);
         loggingFilter.setIncludeQueryString(true);
+        loggingFilter.setIncludeHeaders(true); // Ensure headers are included
         loggingFilter.setIncludePayload(true);
-        loggingFilter.setMaxPayloadLength(64000);
+        loggingFilter.setMaxPayloadLength(10000);
         return loggingFilter;
     }
 }

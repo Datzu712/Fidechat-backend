@@ -7,6 +7,7 @@ import com.fidechat.database.DatabaseManager;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
@@ -50,7 +51,7 @@ public class ChannelRepository {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, userId);
             pstmt.setString(2, userId);
-            System.out.println(pstmt);
+
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 channels.add(new Channel()
@@ -76,15 +77,21 @@ public class ChannelRepository {
         }
     }
 
-    public void insertOne(Channel channel) {
-        String sql = "INSERT INTO \"channel\" (name, description, owner_id) VALUES (?, ?, ?)";
+    public String insertOne(Channel channel) {
+        String sql = "INSERT INTO \"channel\" (id, name, description, owner_id) VALUES (CAST(? AS UUID), ?, ?, CAST(? AS UUID))";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, channel.getName());
-            pstmt.setString(2, channel.getDescription());
-            pstmt.setString(3, channel.getOwnerId());
+            String id = UUID.randomUUID().toString();
+
+            pstmt.setString(1, id);
+            pstmt.setString(2, channel.getName());
+            pstmt.setString(3, channel.getDescription());
+            pstmt.setString(4, channel.getOwnerId());
             pstmt.executeUpdate();
+
+            return id;
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
     }
             public void updateOneById(Channel channel, String id) {

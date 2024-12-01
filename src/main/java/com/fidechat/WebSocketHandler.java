@@ -82,4 +82,25 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
         return null;
     }
+
+    public void handleChannelCreate(String userId, String data) {
+        WebSocketSession targetSession = sessions.stream()
+            .filter(
+                session -> session.getAttributes()
+                    .get("userId")
+                    .equals(userId)
+            )
+            .findFirst()
+            .orElse(null);
+        if (!sessions.contains(targetSession)) {
+            System.out.println("No session found for user: " + userId);
+            return;
+        }
+
+        try {
+            targetSession.sendMessage(new TextMessage(data));
+        } catch (Exception e) {
+           AppLogger.error("Error sending message to session: " + e.getMessage());
+        }
+    }
 }
