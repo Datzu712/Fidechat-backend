@@ -101,4 +101,14 @@ public class UserModel {
             ", updatedAt=" + updatedAt +
             '}';
     }
+
+    public String toJson() {
+        return "{" +
+            "\"id\": \"" + id + "\"," +
+            "\"email\": \"" + email + "\"," +
+            "\"name\": \"" + name + "\"," +
+            "\"createdAt\": \"" + createdAt + "\"," +
+            "\"updatedAt\": \"" + updatedAt + "\"" +
+        "}";
+    }
 }

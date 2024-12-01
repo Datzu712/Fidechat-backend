@@ -6,6 +6,7 @@ public class Channel {
     private String description;
     private String createdAt;
     private String updatedAt;
+    private String ownerId;
 
     public Channel() {}
 
@@ -56,6 +57,15 @@ public class Channel {
 
     public Channel setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
+        return this;
+    }
+
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public Channel setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
         return this;
     }
 }

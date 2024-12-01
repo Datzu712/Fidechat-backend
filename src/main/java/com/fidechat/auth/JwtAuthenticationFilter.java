@@ -13,6 +13,7 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 import com.fidechat.database.models.UserModel;
 import com.fidechat.repositories.UserRepository;
 import com.fidechat.utils.AppLogger;
+import com.fidechat.utils.RequestContext;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import io.micrometer.common.lang.NonNull;
@@ -71,6 +72,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             System.out.println("User found: " + targetUser.getEmail());
             this.setAuthentication(request, targetUser);
+
+            RequestContext.setCurrentUser(targetUser);
+
             filterChain.doFilter(request, response);
         } catch (JWTVerificationException err) {
             response.sendError(401, "Unauthorized");
@@ -110,7 +114,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             .build();
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            userDetails, null, userDetails.getAuthorities());
+            userDetails, 
+            null, 
+            userDetails.getAuthorities()
+        );
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);

@@ -45,7 +45,7 @@ public class AuthService {
 
         res.addCookie(cookie);
 
-        return ResponseEntity.ok("{\"message\": \"Login successful\"}");
+        return ResponseEntity.ok("{\"message\": \"Login successful\", \"data\":" + targetUser.toJson() + "}");
     }
 
     public ResponseEntity<String> registerToSocket(String JWTtoken) {
@@ -63,7 +63,14 @@ public class AuthService {
             if (targetUser == null) {
                 return ResponseEntity.status(404).body("UserModel not found");
             }
-            return ResponseEntity.ok("{\"token\": \"" + JWTtoken + "\"}");
+
+            Algorithm websocketAlgorithm = Algorithm.HMAC256(jwtWebsocketSecret);
+            String websocketToken = JWT.create()
+                .withIssuer("fidechat")
+                .withSubject(targetUser.getId())
+                .sign(websocketAlgorithm);
+            
+            return ResponseEntity.ok("{\"token\": \"" + websocketToken + "\"}");
 
         } catch (JWTVerificationException err) {
             return ResponseEntity.status(401).body("Invalid token");

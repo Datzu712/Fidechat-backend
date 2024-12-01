@@ -8,6 +8,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Repository;
+
+@Repository
 public class ChannelRepository {
     private Connection connection;
 
@@ -36,15 +39,24 @@ public class ChannelRepository {
         return null;
     }
 
-    public List<Channel> findAll() {
-        String sql = "SELECT * FROM \"channel\"";
+    public List<Channel> findAllFor(String userId) {
+        String sql = "select channel.*\n" +
+                "from user_channel\n" +
+                "left join channel on user_channel.user_id = ?\n" +
+                "or channel.owner_id = ?\n" +
+                "where user_channel.channel_id = channel.id";
         List<Channel> channels = new ArrayList<>();
-        try (ResultSet rs = connection.createStatement().executeQuery(sql)) {
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, userId);
+            pstmt.setString(2, userId);
+            ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 channels.add(new Channel()
-                        .setId(rs.getString("id"))
-                        .setName(rs.getString("name"))
-                        .setDescription(rs.getString("description")));
+                    .setId(rs.getString("id"))
+                    .setName(rs.getString("name"))
+                    .setDescription(rs.getString("description"))
+                    .setOwnerId(rs.getString("owner_id"))   
+                );
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -63,10 +75,11 @@ public class ChannelRepository {
     }
 
     public void insertOne(Channel channel) {
-        String sql = "INSERT INTO \"channel\" (name, description) VALUES (?, ?)";
+        String sql = "INSERT INTO \"channel\" (name, description, owner_id) VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, channel.getName());
             pstmt.setString(2, channel.getDescription());
+            pstmt.setString(3, channel.getOwnerId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

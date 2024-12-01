@@ -3,17 +3,22 @@ package com.fidechat.controllers;
 
 import com.fidechat.WebSocketHandler;
 import com.fidechat.database.models.Message;
+import com.fidechat.repositories.ChannelRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/messages")
+@RequestMapping("/channels/{channelId}/messages")
 public class MessageController {
 
     @Autowired
     private WebSocketHandler webSocketHandler;
+
+    @Autowired
+    private ChannelRepository channelRepository;
 
     @PostMapping
     public void createMessage(@RequestBody Message message) {
