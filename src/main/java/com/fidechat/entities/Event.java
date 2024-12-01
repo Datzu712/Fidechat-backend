@@ -1,5 +1,6 @@
 package com.fidechat.entities;
 
+// Abstract event ? 
 public class Event<T> {
     private EventsEnum type;
     private T payload;

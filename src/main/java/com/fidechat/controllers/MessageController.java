@@ -8,8 +8,6 @@ import com.fidechat.repositories.ChannelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/channels/{channelId}/messages")
 public class MessageController {
@@ -21,7 +19,7 @@ public class MessageController {
     private ChannelRepository channelRepository;
 
     @PostMapping
-    public void createMessage(@RequestBody Message message) {
+    public void createMessage(@RequestBody Message message, @PathVariable String channelId) {
         // Save the message to the database (not implemented)
         // Trigger the messageCreate event
         webSocketHandler.sendMessageToAllSessions("messageCreate", message);
