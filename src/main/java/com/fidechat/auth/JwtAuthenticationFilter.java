@@ -39,10 +39,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         @NonNull HttpServletResponse response, 
         @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+        String requestPath = request.getRequestURI();
+        if ("/api/auth/login".equals(requestPath) || "/api/auth/ws/token".equals(requestPath)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         String token = this.getJwtFromCookies(request);
 
         if (token == null) {
-            response.sendError(401, "Unauthorized");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
             System.out.println("No token found in cookies");
             return;
         }

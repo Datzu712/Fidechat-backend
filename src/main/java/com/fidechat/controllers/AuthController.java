@@ -12,13 +12,14 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
-    AuthService authService = new AuthService();
+    @Autowired
+    AuthService authService;
 
     @PostMapping("login")
     @CrossOrigin(origins = "*")
@@ -26,9 +27,10 @@ public class AuthController {
         return this.authService.login(authReqBody.getEmail(), authReqBody.getPassword(), res);
     }
 
-    @PostMapping("/register")
-    public String register(@CookieValue("token") String token) {
-        return "Token: " + token;
+    @PostMapping("/ws/token")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<String> register(@CookieValue("token") String token) {
+        return this.authService.registerToSocket(token);
     }
    
 }

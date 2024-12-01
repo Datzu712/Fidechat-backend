@@ -40,12 +40,9 @@ public class AuthService {
 
         Cookie cookie = new Cookie("token", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true); // Asegúrate de usar HTTPS en producción
+        cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setMaxAge(60 * 60); // 1 hora
-        cookie.setComment("SameSite=Strict;"); // Solo envía la cookie a tu servidor
 
-        // Agregar la cookie a la respuesta
         res.addCookie(cookie);
 
         return ResponseEntity.ok("{\"message\": \"Login successful\"}");
@@ -66,7 +63,7 @@ public class AuthService {
             if (targetUser == null) {
                 return ResponseEntity.status(404).body("UserModel not found");
             }
-            return ResponseEntity.ok("\"token\": \"" + JWTtoken + "\"");
+            return ResponseEntity.ok("{\"token\": \"" + JWTtoken + "\"}");
 
         } catch (JWTVerificationException err) {
             return ResponseEntity.status(401).body("Invalid token");
