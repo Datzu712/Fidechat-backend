@@ -40,15 +40,17 @@ public class ChannelRepository {
     }
 
     public List<Channel> findAllFor(String userId) {
-        String sql = "select channel.*\n" +
-                "from user_channel\n" +
-                "left join channel on user_channel.user_id = ?\n" +
-                "or channel.owner_id = ?\n" +
-                "where user_channel.channel_id = channel.id";
+        String sql = "SELECT channel.*" +
+            " FROM channel" +
+            " LEFT JOIN user_channel ON channel.id = user_channel.channel_id" +
+            " WHERE user_channel.user_id = CAST(? AS UUID)" +
+            " OR channel.owner_id = CAST(? AS UUID)";
+
         List<Channel> channels = new ArrayList<>();
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, userId);
             pstmt.setString(2, userId);
+            System.out.println(pstmt);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 channels.add(new Channel()

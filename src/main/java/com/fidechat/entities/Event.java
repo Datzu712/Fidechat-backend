@@ -17,4 +17,8 @@ public class Event<T> {
     public T getPayload() {
         return this.payload;
     }
+
+    public String toJSON() {
+        return "{\"type\": \"" + this.type + "\", \"payload\": " + this.payload + "}";
+    }
 }

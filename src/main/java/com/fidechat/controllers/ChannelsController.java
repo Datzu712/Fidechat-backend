@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
-@RequestMapping("/channels")
+@RequestMapping("/api/channels")
 @CrossOrigin(origins = "*")
 public class ChannelsController {
     @Autowired
@@ -32,7 +32,7 @@ public class ChannelsController {
         this.channelRepository = channelRepository;
     }
 
-    @RequestMapping("/")
+    @RequestMapping()
     public List<Channel> getChannels(@CookieValue("token") String token) {
         UserModel currentUser = RequestContext.getCurrentUser();
 

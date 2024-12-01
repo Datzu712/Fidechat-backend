@@ -3,6 +3,8 @@ package com.fidechat.controllers;
 
 import com.fidechat.WebSocketHandler;
 import com.fidechat.database.models.Message;
+import com.fidechat.entities.Event;
+import com.fidechat.entities.EventsEnum;
 import com.fidechat.repositories.ChannelRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +22,8 @@ public class MessageController {
 
     @PostMapping
     public void createMessage(@RequestBody Message message, @PathVariable String channelId) {
-        // Save the message to the database (not implemented)
-        // Trigger the messageCreate event
-        webSocketHandler.sendMessageToAllSessions("messageCreate", message);
+        Event<Message> messageCreate = new Event<Message>(EventsEnum.MESSAGE_CREATE, message);
+
+        webSocketHandler.sendMessageToAllSessions("messageCreate", messageCreate.toJSON());
     }
 }
