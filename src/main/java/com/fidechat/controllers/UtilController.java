@@ -4,12 +4,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("")
+import com.fidechat.database.DatabaseManager;
+
+@RequestMapping("/api")
 @RestController
-public class TestController {
-    @GetMapping("")
+public class UtilController {
+
+    @GetMapping("/ping")
     public String test() {
-        System.out.println("Hello, world!");
-        return "Hello, world!";
+        long ping = DatabaseManager.getPing();
+        return "{\"ping\": " + ping + "}";
     }
 }

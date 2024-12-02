@@ -17,19 +17,19 @@ import com.fidechat.services.UserService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 public class UserController {
-    private final UserRepository userRepositoryC = new UserRepository();
+    private final UserRepository userRepository = new UserRepository();
     private final UserService userService = new UserService();
 
     @GetMapping()
     public List<UserModel> findAll() {
-        return this.userRepositoryC.findAll();
+        return this.userRepository.findAll();
     }
 
     @GetMapping("/{id}")
     public UserModel findUserById(@PathVariable String id) {
-        return this.userRepositoryC.findOneById(id);
+        return this.userRepository.findOneById(id);
     }
 
     @PostMapping()
@@ -39,11 +39,11 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable String id) {
-        this.userRepositoryC.deleteOneById(id);
+        this.userRepository.deleteOneById(id);
     }
 
     @PatchMapping("/{id}")
     public void updateUser(@PathVariable String id, @RequestBody UserModel user) {
-        this.userRepositoryC.updateOneById(user, id);
+        this.userRepository.updateOneById(user, id);
     }
 }
