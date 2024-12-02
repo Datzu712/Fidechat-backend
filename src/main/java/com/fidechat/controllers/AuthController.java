@@ -21,7 +21,7 @@ public class AuthController {
     @Autowired
     AuthService authService;
 
-    @PostMapping("login")
+    @PostMapping("/login")
     @CrossOrigin(origins = "*")
     public ResponseEntity<String> login(@RequestBody AuthReqBody authReqBody, HttpServletResponse res) {
         return this.authService.login(authReqBody.getEmail(), authReqBody.getPassword(), res);

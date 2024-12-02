@@ -7,6 +7,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.springframework.lang.NonNull;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.fidechat.entities.Event;
 import com.fidechat.utils.AppLogger;
 import com.fidechat.utils.JwtUtils;
 
@@ -15,7 +16,9 @@ import io.github.cdimascio.dotenv.Dotenv;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class WebSocketHandler extends TextWebSocketHandler {
 
@@ -84,14 +87,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     public void handleChannelCreate(String userId, String data) {
-        WebSocketSession targetSession = sessions.stream()
-            .filter(
-                session -> session.getAttributes()
-                    .get("userId")
-                    .equals(userId)
-            )
-            .findFirst()
-            .orElse(null);
+        WebSocketSession targetSession = this.findSessionByUserId(userId);
         if (!sessions.contains(targetSession)) {
             System.out.println("No session found for user: " + userId);
             return;
@@ -102,5 +98,40 @@ public class WebSocketHandler extends TextWebSocketHandler {
         } catch (Exception e) {
            AppLogger.error("Error sending message to session: " + e.getMessage());
         }
+    }
+
+    public void handleEvent(List<String> usersId, Event eventPayload) {
+        System.out.println("Sending " + eventPayload.getType() + " event to users: " + usersId);
+        List<WebSocketSession> targetSession = this.findSessionByUserId(usersId);
+        if (targetSession.isEmpty()) {
+            System.out.println("No session found for users: " + usersId);
+            return;
+        }
+
+        try {
+            for (WebSocketSession session : targetSession) {
+                session.sendMessage(new TextMessage(eventPayload.toJSON()));
+            }
+        } catch (Exception e) {
+           AppLogger.error("Error sending message to session: " + e.getMessage());
+        }
+    }
+
+    private WebSocketSession findSessionByUserId(String userId) {
+        return sessions.stream()
+            .filter(
+                session -> session.getAttributes()
+                    .get("userId")
+                    .equals(userId)
+            )
+            .findFirst()
+            .orElse(null);
+    }
+    private List<WebSocketSession> findSessionByUserId(List<String> userIds) {
+        return sessions.stream()
+            .filter(
+                session -> userIds.contains(session.getAttributes().get("userId"))
+            )
+            .collect(Collectors.toList());
     }
 }

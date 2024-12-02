@@ -24,15 +24,4 @@ public class Main implements WebSocketConfigurer {
     WebSocketHandler webSocketHandler() {
         return new WebSocketHandler();
     }
-
-    @Bean
-    public CommonsRequestLoggingFilter requestLoggingFilter() {
-        CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
-        loggingFilter.setIncludeClientInfo(true);
-        loggingFilter.setIncludeQueryString(true);
-        loggingFilter.setIncludeHeaders(true); // Ensure headers are included
-        loggingFilter.setIncludePayload(true);
-        loggingFilter.setMaxPayloadLength(10000);
-        return loggingFilter;
-    }
 }

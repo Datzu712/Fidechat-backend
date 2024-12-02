@@ -1,6 +1,8 @@
 package com.fidechat.repositories;
 
 import com.fidechat.database.models.Channel;
+import com.fidechat.database.models.Message;
+import com.fidechat.database.models.UserModel;
 import com.fidechat.utils.AppLogger;
 import com.fidechat.database.DatabaseManager;
 
@@ -30,9 +32,9 @@ public class ChannelRepository {
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 return new Channel()
-                        .setId(rs.getString("id"))
-                        .setName(rs.getString("name"))
-                        .setDescription(rs.getString("description"));
+                    .setId(rs.getString("id"))
+                    .setName(rs.getString("name"))
+                    .setDescription(rs.getString("description"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -106,4 +108,47 @@ public class ChannelRepository {
         }
     }
 
+    public List<UserModel> findAllMembers(String channelId) {
+        String sql = "SELECT \"user\".*" +
+            " FROM \"user\"" +
+            " LEFT JOIN user_channel ON \"user\".id = user_channel.user_id" +
+            " WHERE user_channel.channel_id = CAST(? AS UUID) OR \"user\".id = (SELECT owner_id FROM channel WHERE id = CAST(? AS UUID))";
+        List<UserModel> users = new ArrayList<>();
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, channelId);
+            pstmt.setString(2, channelId);
+
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                users.add(new UserModel()
+                    .setId(rs.getString("id"))
+                    .setName(rs.getString("name"))
+                    .setEmail(rs.getString("email"))
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    public List<Message> getMessagesFrom(String channelId) {
+        String sql = "SELECT * FROM \"message\" WHERE channel_id = ?::uuid";
+        List<Message> messages = new ArrayList<>();
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, channelId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                messages.add(new Message()
+                    .setId(rs.getString("id"))
+                    .setAuthorId(rs.getString("author_id"))
+                    .setContent(rs.getString("content"))
+                    .setChannelId(rs.getString("channel_id"))
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return messages;
+    }
 }

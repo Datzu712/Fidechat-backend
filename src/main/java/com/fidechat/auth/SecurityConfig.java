@@ -15,6 +15,7 @@ public class SecurityConfig {
 
     private JwtAuthenticationFilter jwtCookieAuthenticationFilter = new JwtAuthenticationFilter();
 
+    // http://localhost:5173 / http://localhost:8080 CORS
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())

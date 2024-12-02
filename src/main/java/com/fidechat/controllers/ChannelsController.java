@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fidechat.WebSocketHandler;
 import com.fidechat.database.models.Channel;
+import com.fidechat.database.models.Message;
 import com.fidechat.database.models.UserModel;
 import com.fidechat.entities.Event;
 import com.fidechat.entities.EventsEnum;
@@ -35,7 +36,13 @@ public class ChannelsController {
     public List<Channel> getChannels(@CookieValue("token") String token) {
         UserModel currentUser = RequestContext.getCurrentUser();
 
-        return channelRepository.findAllFor(currentUser.getId());
+        List<Channel> channels = channelRepository.findAllFor(currentUser.getId());
+        for (Channel channel : channels) {
+            List<Message> messages = this.channelRepository.getMessagesFrom(channel.getId());
+            channel.setMessages(messages);
+        }
+
+        return channels;
     }
 
     @PostMapping

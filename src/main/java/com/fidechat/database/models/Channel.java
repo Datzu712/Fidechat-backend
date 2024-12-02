@@ -1,5 +1,7 @@
 package com.fidechat.database.models;
 
+import java.util.List;
+
 public class Channel {
     private String id;
     private String name;
@@ -7,6 +9,9 @@ public class Channel {
     private String createdAt;
     private String updatedAt;
     private String ownerId;
+
+    private List<Message> messages;
+    private List<UserModel> members;
 
     public Channel() {}
 
@@ -71,5 +76,23 @@ public class Channel {
 
     public String toJSON() {
         return "{\"id\": \"" + this.id + "\", \"name\": \"" + this.name + "\", \"description\": \"" + this.description + "\"}";
+    }
+
+    public List<Message> getMessages() {
+        return messages;
+    }
+
+    public Channel setMessages(List<Message> messages) {
+        this.messages = messages;
+        return this;
+    }
+
+    public List<UserModel> getMembers() {
+        return members;
+    }
+
+    public Channel setMembers(List<UserModel> members) {
+        this.members = members;
+        return this;
     }
 }

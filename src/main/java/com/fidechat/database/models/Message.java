@@ -72,4 +72,15 @@ public class Message {
         this.updatedAt = updatedAt;
         return this;
     }
+
+    public String toJSON() {
+        return "{" +
+            "\"id\": \"" + this.id + "\"," +
+            "\"authorId\": \"" + this.authorId + "\"," +
+            "\"content\": \"" + this.content + "\"," +
+            "\"channelId\": \"" + this.channelId + "\"," +
+            "\"createdAt\": \"" + this.createdAt + "\"," +
+            "\"updatedAt\": \"" + this.updatedAt + "\"" +
+        "}";
+    }
 }

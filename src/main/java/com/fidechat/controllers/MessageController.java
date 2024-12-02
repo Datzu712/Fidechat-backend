@@ -6,24 +6,26 @@ import com.fidechat.database.models.Message;
 import com.fidechat.entities.Event;
 import com.fidechat.entities.EventsEnum;
 import com.fidechat.repositories.ChannelRepository;
+import com.fidechat.services.MessageService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/channels/{channelId}/messages")
+@CrossOrigin(origins = "*")
+@RequestMapping("/api/channels/{channelId}/messages")
 public class MessageController {
 
     @Autowired
     private WebSocketHandler webSocketHandler;
 
     @Autowired
-    private ChannelRepository channelRepository;
+    private MessageService messageService;
 
-    @PostMapping
-    public void createMessage(@RequestBody Message message, @PathVariable String channelId) {
-        Event<Message> messageCreate = new Event<Message>(EventsEnum.MESSAGE_CREATE, message);
-
-        webSocketHandler.sendMessageToAllSessions("messageCreate", messageCreate.toJSON());
+    @CrossOrigin(origins = "*")
+    @PostMapping()
+    public ResponseEntity<String> createMessage(@RequestBody Message message, @PathVariable("channelId") String channelId) {
+        return this.messageService.createMessage(channelId, message);
     }
 }
