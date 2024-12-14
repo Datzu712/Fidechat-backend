@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,4 +35,9 @@ public class AuthController {
         return this.authService.registerToSocket(token);
     }
    
+    @PostMapping("/verifyToken")
+    public String getMethodName() {
+        return "U are authenticated!";
+    }
+    
 }
