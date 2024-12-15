@@ -27,10 +27,6 @@ public class SecurityConfig {
                 corsConfiguration.setAllowCredentials(true); // Allow credentials
                 return corsConfiguration;
             }))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/ws/token", "/ws").permitAll()
-                .anyRequest().authenticated()
-            )
             .addFilterBefore(this.jwtCookieAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
