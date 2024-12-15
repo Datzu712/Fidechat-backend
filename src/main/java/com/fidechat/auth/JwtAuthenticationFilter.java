@@ -2,7 +2,6 @@ package com.fidechat.auth;
 
 import java.io.IOException;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.auth0.jwt.JWT;
