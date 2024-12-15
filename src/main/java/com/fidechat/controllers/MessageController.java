@@ -3,9 +3,6 @@ package com.fidechat.controllers;
 
 import com.fidechat.WebSocketHandler;
 import com.fidechat.database.models.Message;
-import com.fidechat.entities.Event;
-import com.fidechat.entities.EventsEnum;
-import com.fidechat.repositories.ChannelRepository;
 import com.fidechat.services.MessageService;
 
 import org.springframework.beans.factory.annotation.Autowired;

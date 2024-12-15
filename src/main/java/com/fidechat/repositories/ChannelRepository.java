@@ -144,6 +144,7 @@ public class ChannelRepository {
                     .setAuthorId(rs.getString("author_id"))
                     .setContent(rs.getString("content"))
                     .setChannelId(rs.getString("channel_id"))
+                    .setCreatedAt(rs.getTimestamp("created_at"))
                 );
             }
         } catch (SQLException e) {
