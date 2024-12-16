@@ -67,7 +67,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         
         String token = this.getJwtFromCookies(request);
-        System.out.println(token);
 
         if (token == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");

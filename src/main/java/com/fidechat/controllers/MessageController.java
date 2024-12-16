@@ -5,6 +5,8 @@ import com.fidechat.WebSocketHandler;
 import com.fidechat.database.models.Message;
 import com.fidechat.services.MessageService;
 
+import java.sql.SQLException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,7 @@ public class MessageController {
 
     @CrossOrigin(origins = "*")
     @PostMapping()
-    public ResponseEntity<String> createMessage(@RequestBody Message message, @PathVariable("channelId") String channelId) {
+    public ResponseEntity<String> createMessage(@RequestBody Message message, @PathVariable("channelId") String channelId) throws SQLException {
         return this.messageService.createMessage(channelId, message);
     }
 }

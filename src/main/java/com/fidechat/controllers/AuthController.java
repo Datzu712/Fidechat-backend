@@ -42,7 +42,6 @@ public class AuthController {
 
     @GetMapping("/logout")
     public ResponseEntity<String> logout(HttpServletResponse res) {
-        System.out.println("logout");
         return this.authService.logout(res);
     }
 

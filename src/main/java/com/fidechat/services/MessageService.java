@@ -1,5 +1,6 @@
 package com.fidechat.services;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +30,7 @@ public class MessageService {
     @Autowired
     private ChannelRepository channelRepository;
 
-    public ResponseEntity<String> createMessage(String channelId, Message msg) {
+    public ResponseEntity<String> createMessage(String channelId, Message msg) throws SQLException {
         Channel targetChannel = this.channelRepository.findOneById(channelId);
         if (targetChannel == null) {
             return new ResponseEntity<>("{\"error\": \"Channel not found\"}", HttpStatus.NOT_FOUND);

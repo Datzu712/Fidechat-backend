@@ -56,8 +56,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
         AppLogger.info("Received message: " + message.getPayload());
-        session.sendMessage(new TextMessage("Received: " + message.getPayload()));
-        sendMessageToAllSessions("message", message.getPayload());
     }
 
     public void sendMessageToAllSessions(String event, Object data) {

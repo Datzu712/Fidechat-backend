@@ -25,20 +25,20 @@ public class ChannelRepository {
         }
     }
 
-    public Channel findOneById(String id) {
+    public Channel findOneById(String id) throws SQLException {
         String sql = "SELECT * FROM \"channel\" WHERE id = ?::uuid";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, id);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return new Channel()
-                    .setId(rs.getString("id"))
-                    .setName(rs.getString("name"))
-                    .setDescription(rs.getString("description"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+        PreparedStatement pstmt = connection.prepareStatement(sql);
+        pstmt.setString(1, id);
+        ResultSet rs = pstmt.executeQuery();
+        if (rs.next()) {
+            return new Channel()
+                .setId(rs.getString("id"))
+                .setName(rs.getString("name"))
+                .setOwnerId(rs.getString("owner_id"))
+                .setDescription(rs.getString("description"));
         }
+
         return null;
     }
 
@@ -96,16 +96,16 @@ public class ChannelRepository {
             return null;
         }
     }
-            public void updateOneById(Channel channel, String id) {
-        String sql = "UPDATE \"message\" SET (name, description) VALUES (?, ?) WHERE id = ?:: uuid";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, channel.getName());
-            pstmt.setString(2, channel.getDescription());
-            pstmt.setString(3, id);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            AppLogger.error(e.getMessage() + "\nStackTrace:" + e.getStackTrace() + "\nSQLState" + e.getSQLState());
-        }
+    public boolean updateOneById(String id, Channel channel) throws SQLException {
+        String sql = "UPDATE \"channel\" SET name = ?, description = ? WHERE id = ?::uuid";
+        PreparedStatement pstmt = connection.prepareStatement(sql);
+    
+        pstmt.setString(1, channel.getName());
+        pstmt.setString(2, channel.getDescription());
+        pstmt.setString(3, id);
+        pstmt.executeUpdate();
+
+        return true;
     }
 
     public List<UserModel> findAllMembers(String channelId) {
@@ -132,24 +132,23 @@ public class ChannelRepository {
         return users;
     }
 
-    public List<Message> getMessagesFrom(String channelId) {
+    public List<Message> getMessagesFrom(String channelId) throws SQLException {
         String sql = "SELECT * FROM \"message\" WHERE channel_id = ?::uuid";
         List<Message> messages = new ArrayList<>();
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, channelId);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                messages.add(new Message()
-                    .setId(rs.getString("id"))
-                    .setAuthorId(rs.getString("author_id"))
-                    .setContent(rs.getString("content"))
-                    .setChannelId(rs.getString("channel_id"))
-                    .setCreatedAt(rs.getTimestamp("created_at"))
-                );
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        PreparedStatement pstmt = connection.prepareStatement(sql);
+
+        pstmt.setString(1, channelId);
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+            messages.add(new Message()
+                .setId(rs.getString("id"))
+                .setAuthorId(rs.getString("author_id"))
+                .setContent(rs.getString("content"))
+                .setChannelId(rs.getString("channel_id"))
+                .setCreatedAt(rs.getTimestamp("created_at"))
+            );
         }
+
         return messages;
     }
 }
