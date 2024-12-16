@@ -42,6 +42,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String requestPath = request.getRequestURI();
         System.out.println("Request path: " + requestPath);
 
+        if (requestPath.startsWith("/assets")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (requestPath.startsWith("/ws")) {
             filterChain.doFilter(request, response);
             return;
@@ -62,6 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         
         String token = this.getJwtFromCookies(request);
+        System.out.println(token);
 
         if (token == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");

@@ -21,12 +21,21 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(request -> {
                 var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
-                corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
+                corsConfiguration.setAllowedOrigins(List.of("https://fidechat.meddyg.com"));
                 corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 corsConfiguration.setAllowedHeaders(List.of("*"));
                 corsConfiguration.setAllowCredentials(true); // Allow credentials
                 return corsConfiguration;
             }))
+            .headers(c -> c.frameOptions(f -> f.disable()))
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/assets/**").permitAll()
+                .requestMatchers("/ws").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/ws/token", "/api/auth/register").permitAll()
+                .requestMatchers("/api/**").authenticated()
+                .requestMatchers("/*").permitAll()
+                .anyRequest().authenticated()
+            )
             .addFilterBefore(this.jwtCookieAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
