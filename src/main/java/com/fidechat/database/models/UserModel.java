@@ -48,7 +48,7 @@ public class UserModel {
         return this;
     }
 
-    public UserModel sePassword(String password) {
+    public UserModel setPassword(String password) {
         this.hashedPassword = hashPassword(password);
         return this;
     }
@@ -64,9 +64,8 @@ public class UserModel {
     }
 
     public boolean checkPassword(String password) {
-        return true;
-        // BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        // return passwordEncoder.matches(password, this.hashedPassword);
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        return passwordEncoder.matches(password, this.hashedPassword);
     }
 
     public String getHashedPassword() {

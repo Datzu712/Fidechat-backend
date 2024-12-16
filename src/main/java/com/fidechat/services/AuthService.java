@@ -16,6 +16,7 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 import com.fidechat.repositories.UserRepository;
 import com.fidechat.utils.AppLogger;
 import com.fidechat.database.models.UserModel;
+import com.fidechat.entities.dto.AuthReqBody;
 
 
 @Service
@@ -140,5 +141,30 @@ public class AuthService {
         res.addCookie(cookie);
 
         return ResponseEntity.ok("{\"message\": \"Logout successful\"}");
+    }
+
+    public ResponseEntity<String> register(AuthReqBody data) {
+        try {
+            if (data.getEmail() == null || data.getPassword() == null || data.getName() == null) {
+                return ResponseEntity.status(400).body("Missing required fields");
+            }
+
+            UserModel existingUser = userRepository.queryOneByCriteria(new UserModel().setEmail(data.getEmail()));
+            if (existingUser != null) {
+                return ResponseEntity.status(409).body("Email already in use");
+            }
+    
+            UserModel newUser = new UserModel()
+                .setEmail(data.getEmail())
+                .setPassword(data.getPassword())
+                .setName(data.getName());
+    
+            userRepository.insertOne(newUser);
+    
+            return ResponseEntity.ok("{\"message\": \"Registration successful\", \"data\":" + newUser.toJson() + "}");
+        } catch (Exception e) {
+           e.printStackTrace();
+              return ResponseEntity.status(500).body("Internal server error");
+        }
     }
 }

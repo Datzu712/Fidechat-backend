@@ -45,5 +45,10 @@ public class AuthController {
         System.out.println("logout");
         return this.authService.logout(res);
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody AuthReqBody authReqBody) {
+        return this.authService.register(authReqBody);
+    }
     
 }
