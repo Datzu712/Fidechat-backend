@@ -23,6 +23,16 @@ public class AuthService {
     private UserRepository userRepository = new UserRepository();
     private Dotenv config = Dotenv.load();
 
+    /**
+     * Authenticates a user based on the provided email and password.
+     * If authentication is successful, a JWT token is generated and added as an HTTP-only cookie to the response.
+     *
+     * @param email the email of the user attempting to log in
+     * @param password the password of the user attempting to log in
+     * @param res the HttpServletResponse to which the JWT token cookie will be added
+     * @return a ResponseEntity containing a success message and user data if authentication is successful,
+     *         or an error message if authentication fails
+     */
     public ResponseEntity<String> login(String email, String password, HttpServletResponse res) {
         UserModel criteria = new UserModel().setEmail(email);
 
@@ -48,6 +58,14 @@ public class AuthService {
         return ResponseEntity.ok("{\"message\": \"Login successful\", \"data\":" + targetUser.toJson() + "}");
     }
 
+    /**
+     * Registers a user to the websocket service by verifying the provided JWT token
+     * and generating a new websocket token.
+     *
+     * @param JWTtoken the JWT token to be verified
+     * @return a ResponseEntity containing the new websocket token in JSON format if the
+     *         verification is successful, or an error message if the verification fails
+     */
     public ResponseEntity<String> registerToSocket(String JWTtoken) {
         String jwtSecret = this.getSecret(false);
         String jwtWebsocketSecret = this.getSecret(true);
@@ -77,6 +95,16 @@ public class AuthService {
         }
     }
 
+    /**
+     * Retrieves the JWT secret key from the configuration.
+     * If the secret key is not found and the environment is set to "dev",
+     * a default secret key is used and an error is logged.
+     * If the secret key is not found and the environment is not "dev",
+     * the application will print an error message and terminate.
+     *
+     * @param forWebsocket a Boolean indicating whether to retrieve the secret key for WebSocket connections.
+     * @return the JWT secret key as a String.
+     */
     private String getSecret(Boolean forWebsocket) {
         String secret = this.config.get("JWT_" + (forWebsocket ? "WEBSOCKET_" : "") + "SECRET");
         if (secret == null) {
@@ -89,5 +117,28 @@ public class AuthService {
             }
         }
         return secret;
+    }
+
+    /**
+     * Logs out the user by invalidating the authentication cookie.
+     *
+     * This method creates a new cookie with the name "token" and sets its value to null.
+     * The cookie is configured to be HTTP-only and secure, with a path of "/" and a maximum age of 0,
+     * effectively removing it from the client's browser.
+     * The cookie is then added to the response to be sent back to the client.
+     *
+     * @param res the HttpServletResponse to which the cookie will be added
+     * @return a ResponseEntity containing a JSON message indicating that the logout was successful
+     */
+    public ResponseEntity<String> logout(HttpServletResponse res) {
+        Cookie cookie = new Cookie("token", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+
+        res.addCookie(cookie);
+
+        return ResponseEntity.ok("{\"message\": \"Logout successful\"}");
     }
 }
