@@ -22,7 +22,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(request -> {
                 System.out.println("CORS Configuration");
                 var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
-                corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
+                corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173", "https://fidechat.meddyg.com"));
                 corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
                 corsConfiguration.setAllowedHeaders(List.of("*"));
                 corsConfiguration.setAllowCredentials(true); // Allow credentials

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +38,9 @@ public class ChannelsController {
     @Autowired
     private WebSocketHandler webSocketHandler;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @CrossOrigin(origins = "*")
     @GetMapping
     public List<Channel> getChannels(@CookieValue("token") String token) throws SQLException {
@@ -60,6 +64,7 @@ public class ChannelsController {
             return "{\"message\": \"error\"}";
         }
         newChannel.setId(newChannelId);
+        newChannel.setOwnerId(RequestContext.getCurrentUser().getId());
         Event<String> eventPayload = new Event<>(EventsEnum.CHANNEL_CREATE, newChannel.toJSON());
 
         webSocketHandler.handleChannelCreate(newChannel.getOwnerId(), eventPayload.toJSON());
@@ -105,6 +110,47 @@ public class ChannelsController {
         this.webSocketHandler.handleEvent(members, eventPayload);
 
         return ResponseEntity.ok("{\"message\": \"success\"}");
+    }
+    
+    @DeleteMapping("/{channelId}")
+    public ResponseEntity<String> deleteChannel(@PathVariable("channelId") String channelId) throws SQLException {
+        Channel targetChannel = this.channelRepository.findOneById(channelId);
+        if (targetChannel == null || !targetChannel.getOwnerId().equals(RequestContext.getCurrentUser().getId())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        this.channelRepository.deleteOneById(channelId);
+
+        List<String> members = this.channelRepository.findAllMembers(channelId)
+            .stream()
+            .map(UserModel::getId)
+            .toList();
+        Event<String> eventPayload = new Event<>(EventsEnum.CHANNEL_DELETE, targetChannel.toJSON());
+
+        this.webSocketHandler.handleEvent(members, eventPayload);
+
+        return ResponseEntity.ok("{\"message\": \"success\"}");
+    }
+
+    @PostMapping("/{channelId}/members/{userEmail}")
+    public String addUser(@PathVariable("channelId") String channelId, @PathVariable("userEmail") String userEmail) throws SQLException {
+        UserModel currentUser = RequestContext.getCurrentUser();
+        Channel targetChannel = this.channelRepository.findOneById(channelId);
+        if (targetChannel == null || !targetChannel.getOwnerId().equals(currentUser.getId())) {
+            return "{\"message\": \"error\"}";
+        }
+
+        UserModel user = this.userRepository.queryOneByCriteria(new UserModel().setEmail(userEmail));
+        if (user == null) {
+            return "{\"message\": \"error\"}";
+        }
+
+        this.channelRepository.addMember(channelId, user.getId());
+        Event<String> eventPayload = new Event<>(EventsEnum.CHANNEL_CREATE, targetChannel.toJSON());
+
+        webSocketHandler.handleChannelCreate(user.getId(), eventPayload.toJSON());
+
+        return "{\"message\": \"success\"}";
     }
     
 }

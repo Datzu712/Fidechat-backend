@@ -5,4 +5,5 @@ public enum EventsEnum {
     MEMBER_JOIN,
     CHANNEL_CREATE,
     CHANNEL_UPDATE,
+    CHANNEL_DELETE,
 }

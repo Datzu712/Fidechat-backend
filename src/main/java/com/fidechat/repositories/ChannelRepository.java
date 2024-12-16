@@ -69,15 +69,20 @@ public class ChannelRepository {
         return channels;
     }
 
-    public void deleteOneById(String id) {
+    public void deleteOneById(String id) throws SQLException {
+        String sql2 = "DELETE FROM \"message\" WHERE channel_id = ?::uuid";
+        PreparedStatement pstmt2 = connection.prepareStatement(sql2);
+        pstmt2.setString(1, id);
+        pstmt2.executeUpdate();
+
         String sql = "DELETE FROM \"channel\" WHERE id = ?::uuid";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, id);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+
+        PreparedStatement pstmt = connection.prepareStatement(sql);
+
+        pstmt.setString(1, id);
+        pstmt.executeUpdate();
     }
+
 
     public String insertOne(Channel channel) {
         String sql = "INSERT INTO \"channel\" (id, name, description, owner_id) VALUES (CAST(? AS UUID), ?, ?, CAST(? AS UUID))";
@@ -150,5 +155,14 @@ public class ChannelRepository {
         }
 
         return messages;
+    }
+
+    public void addMember(String channelId, String userId) throws SQLException {
+        String sql = "INSERT INTO user_channel (channel_id, user_id) VALUES (CAST(? AS UUID), CAST(? AS UUID))";
+        PreparedStatement pstmt = connection.prepareStatement(sql);
+
+        pstmt.setString(1, channelId);
+        pstmt.setString(2, userId);
+        pstmt.executeUpdate();
     }
 }

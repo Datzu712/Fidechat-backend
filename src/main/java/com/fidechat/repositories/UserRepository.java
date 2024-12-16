@@ -7,6 +7,7 @@ import com.fidechat.database.DatabaseManager;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
@@ -67,15 +68,28 @@ public class UserRepository {
         }
     }
 
-    public void insertOne(UserModel UserModel) throws SQLException {
-        String sql = "INSERT INTO \"user\" (name, email, hashed_password) VALUES (?, ?, ?)";
+    public void insertOne(UserModel userModel) throws SQLException {
+        String sql = "INSERT INTO \"user\" (id, name, email, hashed_password) VALUES (CAST(? AS UUID), ?, ?, ?)";
 
+        String id = UUID.randomUUID().toString();
+        
         PreparedStatement pstmt = connection.prepareStatement(sql);
-
-        pstmt.setString(1, UserModel.getName());
-        pstmt.setString(2, UserModel.getEmail());
-        pstmt.setString(3, UserModel.getHashedPassword());
+        
+        pstmt.setString(1, id);
+        pstmt.setString(2, userModel.getName());
+        pstmt.setString(3, userModel.getEmail());
+        pstmt.setString(4, userModel.getHashedPassword());
+        
         pstmt.executeUpdate();
+
+
+        // default channel id
+        String sql2 = "INSERT INTO user_channel (user_id, channel_id) VALUES (CAST(? AS UUID), CAST(? AS UUID))";
+        PreparedStatement pstmt2 = connection.prepareStatement(sql2);
+        pstmt2.setString(1, id);
+        pstmt2.setString(2, "dd166ae3-d10c-42e9-9d5b-b8225b0349c9");
+
+        pstmt2.executeUpdate();
     }
 
     public void updateOneById(UserModel UserModel, String id) {
@@ -162,4 +176,20 @@ public class UserRepository {
         }
         return UserModels;
     }
+
+    public UserModel findByEmail(String email) throws SQLException {
+        String sql = "SELECT id, name, email FROM \"user\" WHERE email = ?";
+        PreparedStatement pstmt = connection.prepareStatement(sql);
+        pstmt.setString(1, email);
+        ResultSet rs = pstmt.executeQuery();
+        if (rs.next()) {
+            return new UserModel()
+                .setId(rs.getString("id"))
+                .setName(rs.getString("name"))
+                .setEmail(rs.getString("email"));
+        }
+
+        return null;
+    }
+
 }
