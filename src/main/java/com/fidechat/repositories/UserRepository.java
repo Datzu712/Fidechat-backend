@@ -84,12 +84,12 @@ public class UserRepository {
 
 
         // default channel id
-        String sql2 = "INSERT INTO user_channel (user_id, channel_id) VALUES (CAST(? AS UUID), CAST(? AS UUID))";
-        PreparedStatement pstmt2 = connection.prepareStatement(sql2);
-        pstmt2.setString(1, id);
-        pstmt2.setString(2, "dd166ae3-d10c-42e9-9d5b-b8225b0349c9");
+        // String sql2 = "INSERT INTO user_channel (user_id, channel_id) VALUES (CAST(? AS UUID), CAST(? AS UUID))";
+        // PreparedStatement pstmt2 = connection.prepareStatement(sql2);
+        // pstmt2.setString(1, id);
+        // pstmt2.setString(2, "dd166ae3-d10c-42e9-9d5b-b8225b0349c9");
 
-        pstmt2.executeUpdate();
+        // pstmt2.executeUpdate();
     }
 
     public void updateOneById(UserModel UserModel, String id) {
