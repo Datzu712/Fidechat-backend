@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: move to pino logger
 
-import { blue, cyan, green, magenta, red, reset as resetColor, yellow } from './constants';
-import { createWriteStream, existsSync, mkdirSync, WriteStream } from 'fs';
+import { blue, cyan, green, magenta, red, reset as resetColor, yellow } from './constants/colors.js';
+import { createWriteStream, existsSync, mkdirSync, type WriteStream } from 'node:fs';
 
 import type { DeepRequired } from 'ts-essentials';
-import { inspect } from 'util';
+import { inspect } from 'node:util';
 import type { MessageLogExpressionsKey } from './interfaces/logMessageKeywords';
 import type { LogLevels } from './interfaces/logLevels';
 import type { AbstractLogger } from './interfaces/abstract-logger';
@@ -48,9 +47,7 @@ export interface ConsoleLoggerOptions {
     /**
      * Spaces to indent the output.
      */
-    indents?: {
-        [key in MessageLogExpressionsKey]?: number;
-    };
+    indents?: Record<any, number | undefined>;
 }
 
 export class ConsoleLogger implements AbstractLogger {
@@ -125,21 +122,21 @@ export class ConsoleLogger implements AbstractLogger {
             .replaceAll(
                 '{timestamp}',
                 `${colorize ? `${green}${timestamp}${resetColor}` : timestamp}${this.formatIndentationText(
-                    this.options.indents.timestamp,
+                    this.options.indents.timestamp!,
                     timestamp,
                 )}`,
             )
             .replaceAll(
                 '{pid}',
                 `${colorize ? `${green}${pid}${resetColor}` : pid}${this.formatIndentationText(
-                    this.options.indents.pid,
+                    this.options.indents.pid!,
                     pid,
                 )}`,
             )
             .replaceAll(
                 '{level}',
                 `${colorize ? this.formatLevel(level) : level.toUpperCase()}${this.formatIndentationText(
-                    this.options.indents.level,
+                    this.options.indents.level!,
                     level,
                 )}`,
             )
@@ -154,12 +151,12 @@ export class ConsoleLogger implements AbstractLogger {
                               maxArrayLength: null,
                               maxStringLength: null,
                           })
-                }${this.formatIndentationText(this.options.indents.message, message as string)}`,
+                }${this.formatIndentationText(this.options.indents.message!, message as string)}`,
             )
             .replaceAll(
                 '{context}',
                 `${colorize ? `${red}${context}${resetColor}` : context}${this.formatIndentationText(
-                    this.options.indents.context,
+                    this.options.indents.context!,
                     context,
                 )}`,
             );

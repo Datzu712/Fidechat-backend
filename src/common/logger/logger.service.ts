@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/nestjs';
-import { ConsoleLogger, ConsoleLoggerOptions } from './console-logger';
+import { ConsoleLogger, type ConsoleLoggerOptions } from './console-logger';
 import type { AbstractLogger, LogLevels, logMessage } from './interfaces';
 
 const defaultLogger = new ConsoleLogger();
@@ -10,7 +10,7 @@ export class Logger implements AbstractLogger {
     protected static logLevels: LogLevels[];
 
     constructor(
-        private defaultContext?: string,
+        private readonly defaultContext?: string,
         instanceOptions?: ConsoleLoggerOptions,
     ) {
         // If theres not a static instance it means that the logger is not initialized, so if we don't have the "instanceOptions" to create a new instance of "ConsoleLogger", we will use the default logger.

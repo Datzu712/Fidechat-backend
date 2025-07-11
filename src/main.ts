@@ -13,7 +13,7 @@ import { AppModule } from './modules/app.module';
 import { requestLogger } from '@/common/logger/request.logger';
 // import { IoAdapter } from '@nestjs/platform-socket.io';
 
-const logger = new Logger('Meddhiex', {
+const logger = new Logger('Fidechat', {
     logLevels: ['debug', 'error', 'warn', 'verbose', 'log'],
     folderPath: './logs',
     allowConsole: ['warn', 'error', 'log', 'debug'],
@@ -30,9 +30,10 @@ async function bootstrap() {
     fastifyInstance.addHook('onSend', async (req, reply, payload) => {
         requestLogger(req, reply, payload);
     });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- just to shut up the silly type checker
+
     const app = await NestFactory.create<NestFastifyApplication>(
         AppModule,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- just to shut up the silly type checker
         new FastifyAdapter(fastifyInstance as any),
         {
             logger,

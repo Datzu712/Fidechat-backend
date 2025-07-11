@@ -7,7 +7,7 @@ import standardJS from 'eslint-config-love';
 
 export default tseslint.config(
     {
-        ignores: ['eslint.config.mjs'],
+        ignores: ['eslint.config.mjs', './src/common/logger'], // I should change my custom logger to pino logger some day
     },
     eslint.configs.recommended,
     ...tseslint.configs.recommendedTypeChecked,
