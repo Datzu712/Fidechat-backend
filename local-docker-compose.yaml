@@ -1,0 +1,59 @@
+services:
+
+  oracle:
+    image: container-registry.oracle.com/database/express:18.4.0-xe
+    ports:
+      - "${ORACLE_PORT:-1521}:1521"
+    env_file:
+      - .env
+    environment:
+      - ORACLE_PWD=${ORACLE_PWD:?error}
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+
+  # For this project, we only use postgres for keycloak. But the application itself use oracle 18c.
+  postgres:
+    image: postgres:latest
+    env_file:
+      - .env
+    container_name: fidechat-keycloak-postgres
+    environment:
+      POSTGRES_USER: ${PG_USER:?error}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?error}
+      POSTGRES_DB: ${PG_NAME:-keycloak}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${PG_USER} -d ${PG_NAME:-keycloak}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - pg_keycloak_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    restart: unless-stopped
+    container_name: fidechat-keycloak
+    env_file:
+      - .env
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_DATABASE: 
+      KC_DB_USERNAME: ${KC_DB_USERNAME:-${PG_USER:?error}}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:-${PG_PASSWORD:?error}}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:?error}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?error}
+      KC_DB_URL: ${KC_DB_URL:-jdbc:postgresql://postgres:5432/${PG_NAME:-keycloak}}
+    depends_on:
+      - postgres
+    ports:
+      - "${KC_PORT:-8081}:8080"
+    command: start-dev
+
+volumes:
+  pg_keycloak_data:
+  oracle_data:

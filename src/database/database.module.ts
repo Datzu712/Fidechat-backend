@@ -33,7 +33,6 @@ export const DATABASE_CONNECTION = 'DATABASE_CONNECTION';
                     Logger.error(error, 'DatabaseModule');
                     throw error;
                 }
-
                 return connection;
             },
             inject: [ConfigService],
