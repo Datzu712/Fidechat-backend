@@ -7,6 +7,20 @@ export enum Environment {
     Test = 'test',
 }
 export class EnvironmentVariables implements IEnvironmentVariables {
+    // Keycloak
+    @IsString()
+    KEYCLOAK_URL: string;
+
+    @IsString()
+    KEYCLOAK_REALM: string;
+
+    @IsString()
+    KEYCLOAK_CLIENT_ID: string;
+
+    @IsString()
+    KEYCLOAK_CLIENT_SECRET: string;
+
+    // Oracle
     @IsString()
     ORACLE_PWD: string;
 
@@ -23,6 +37,7 @@ export class EnvironmentVariables implements IEnvironmentVariables {
     @IsString()
     ORACLE_HOST: string;
 
+    // Api
     @IsNumber()
     @Min(1)
     PORT: number;
