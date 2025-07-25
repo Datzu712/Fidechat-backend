@@ -11,15 +11,15 @@ export const DATABASE_CONNECTION = 'DATABASE_CONNECTION';
         {
             provide: DATABASE_CONNECTION,
             useFactory: async (configService: ConfigService<IEnvironmentVariables>) => {
-                const user = configService.get<string>('DB_USER');
-                const password = configService.get<string>('DB_PASSWORD');
-                const connectString = configService.get<string>('DB_CONNECTION_STRING');
+                const user = configService.get<string>('ORACLE_USER');
+                const password = configService.get<string>('ORACLE_PWD');
+                const oracleServiceName = configService.get<string>('ORACLE_SERVICE_NAME');
 
                 const startTime = Date.now();
                 const connection = await oracledb.getConnection({
                     user,
                     password,
-                    connectString,
+                    connectString: `${configService.get<string>('ORACLE_HOST')}:${configService.get<number>('ORACLE_PORT')}/${oracleServiceName}`,
                 });
                 const endTime = Date.now();
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment -- todo check fastify type errors */
 import './instrumentation';
 
 import { NestFactory } from '@nestjs/core';
@@ -31,17 +32,15 @@ async function bootstrap() {
         requestLogger(req, reply, payload);
     });
 
-    const app = await NestFactory.create<NestFastifyApplication>(
-        AppModule,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- just to shut up the silly type checker
-        new FastifyAdapter(fastifyInstance as any),
-        {
-            logger,
-        },
-    );
+    const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(fastifyInstance), {
+        logger,
+    });
 
+    // @ts-ignore -- just to shut up the silly type checker
     void app.register(helmet);
+    // @ts-ignore -- just to shut up the silly type checker
     void app.register(compression);
+    // @ts-ignore -- just to shut up the silly type checker
     void app.register(fastifyCSRF);
 
     //app.useWebSocketAdapter(new IoAdapter(app));
@@ -56,7 +55,7 @@ async function bootstrap() {
     });
     app.setGlobalPrefix('api');
 
-    await app.listen(process.env.port || 3000);
+    await app.listen(process.env.PORT || 3000);
 
     logger.log(
         `Application is running on: ${await app.getUrl()} as ${process.env.NODE_ENV} environment. (CORS: ${process.env.CORS_ORIGIN})`,

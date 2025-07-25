@@ -8,13 +8,21 @@ export enum Environment {
 }
 export class EnvironmentVariables implements IEnvironmentVariables {
     @IsString()
-    DB_USER: string;
+    ORACLE_PWD: string;
+
+    @IsNumber()
+    @Min(1)
+    ORACLE_PORT: number;
 
     @IsString()
-    DB_PASSWORD: string;
+    ORACLE_USER: string;
 
     @IsString()
-    DB_CONNECTION_STRING: string;
+    ORACLE_SERVICE_NAME: string;
+
+    @IsString()
+    ORACLE_HOST: string;
+
     @IsNumber()
     @Min(1)
     PORT: number;

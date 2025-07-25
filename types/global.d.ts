@@ -1,9 +1,11 @@
 declare interface IEnvironmentVariables {
     NODE_ENV: 'development' | 'production' | 'test';
     PORT: number;
-    DB_USER: string;
-    DB_PASSWORD: string;
-    DB_CONNECTION_STRING: string;
+    ORACLE_PWD: string;
+    ORACLE_PORT: number;
+    ORACLE_USER: string;
+    ORACLE_SERVICE_NAME: string;
+    ORACLE_HOST: string;
 }
 
 declare namespace NodeJS {
