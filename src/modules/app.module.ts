@@ -4,13 +4,14 @@ import {
     RoleGuard as KeycloakRoleGuard,
 } from 'nest-keycloak-connect';
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 
 import { validateEnv } from '@/common/utils/env.validation';
 import { DatabaseModule } from '@/database/database.module';
 import { ChannelModule } from './channel/channel.module';
 import { KeycloakModule } from './auth/keycloak/keycloak.module';
+import { KeycloakSyncInterceptor } from './auth/keycloak/keycloak-sync.interceptor';
 
 @Module({
     imports: [
@@ -34,6 +35,10 @@ import { KeycloakModule } from './auth/keycloak/keycloak.module';
         {
             provide: APP_GUARD,
             useClass: KeycloakRoleGuard,
+        },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: KeycloakSyncInterceptor,
         },
     ],
 })

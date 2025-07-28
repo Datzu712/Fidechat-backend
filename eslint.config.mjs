@@ -28,13 +28,6 @@ export default tseslint.config(
     },
     {
         rules: {
-            '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-floating-promises': 'warn',
-            '@typescript-eslint/no-unsafe-argument': 'warn',
-        },
-    },
-    {
-        rules: {
             '@typescript-eslint/interface-name-prefix': 'off',
             '@typescript-eslint/explicit-function-return-type': 'off',
             '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -74,6 +67,9 @@ export default tseslint.config(
             '@typescript-eslint/no-magic-numbers': 'warn',
             'no-implicit-globals': 'off',
             '@typescript-eslint/prefer-destructuring': 'off',
+            '@typescript-eslint/class-methods-use-this': 'off',
+            '@typescript-eslint/no-floating-promises': 'warn',
+            '@typescript-eslint/no-unsafe-argument': 'warn',
         },
     },
 );
