@@ -1,3 +1,5 @@
+// todo: implement strict column & table names
+
 export const TABLES = {
     APP_USER: 'APP_USER',
 };
