@@ -12,6 +12,7 @@ import { DatabaseModule } from '@/database/database.module';
 import { ChannelModule } from './channel/channel.module';
 import { KeycloakModule } from './auth/keycloak/keycloak.module';
 import { KeycloakSyncInterceptor } from './auth/keycloak/keycloak-sync.interceptor';
+import { UserModule } from './users/user.module';
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import { KeycloakSyncInterceptor } from './auth/keycloak/keycloak-sync.intercept
         DatabaseModule,
         ChannelModule,
         KeycloakModule,
+        UserModule,
     ],
     providers: [
         {

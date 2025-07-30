@@ -9,6 +9,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
+    "dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -31,7 +32,6 @@
     "@nestjs/core": "^11.1.5",
     "@nestjs/platform-fastify": "^11.1.5",
     "@sentry/nestjs": "^9.42.0",
-    "@sequelize/core": "7.0.0-alpha.46",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "dotenv": "^17.2.1",
@@ -41,8 +41,7 @@
     "nest-keycloak-connect": "^1.10.1",
     "oracledb": "^6.9.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2",
-    "sequelize": "^6.37.7"
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

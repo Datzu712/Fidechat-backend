@@ -1,28 +1,32 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "esnext",
+    "target": "es2024",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "strictNullChecks": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@/*": [
         "src/*"
-      ]
+      ],
+      "@db/*": [
+        "src/database/*"
+      ],
     },
     "typeRoots": [
       "node_modules/@types",

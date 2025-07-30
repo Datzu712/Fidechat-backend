@@ -9,39 +9,39 @@ export enum Environment {
 export class EnvironmentVariables implements IEnvironmentVariables {
     // Keycloak
     @IsString()
-    KEYCLOAK_URL: string;
+    KEYCLOAK_URL!: string;
 
     @IsString()
-    KEYCLOAK_REALM: string;
+    KEYCLOAK_REALM!: string;
 
     @IsString()
-    KEYCLOAK_CLIENT_ID: string;
+    KEYCLOAK_CLIENT_ID!: string;
 
     @IsString()
-    KEYCLOAK_CLIENT_SECRET: string;
+    KEYCLOAK_CLIENT_SECRET!: string;
 
     // Oracle
     @IsString()
-    ORACLE_PWD: string;
+    ORACLE_PWD!: string;
 
     @IsNumber()
     @Min(1)
-    ORACLE_PORT: number;
+    ORACLE_PORT!: number;
 
     @IsString()
-    ORACLE_USER: string;
+    ORACLE_USER!: string;
 
     @IsString()
-    ORACLE_SERVICE_NAME: string;
+    ORACLE_SERVICE_NAME!: string;
 
     @IsString()
-    ORACLE_HOST: string;
+    ORACLE_HOST!: string;
 
     // Api
     @IsNumber()
     @Min(1)
-    PORT: number;
+    PORT!: number;
 
     @IsEnum(Environment)
-    NODE_ENV: Environment;
+    NODE_ENV!: Environment;
 }

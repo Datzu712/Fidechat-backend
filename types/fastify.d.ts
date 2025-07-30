@@ -1,6 +1,6 @@
 import 'fastify';
 
-export interface User {
+export interface IReqUser {
     exp: number;
     iat: number;
     auth_time: number;
@@ -29,6 +29,6 @@ export interface User {
 
 declare module 'fastify' {
     interface FastifyRequest {
-        user?: User;
+        user?: IReqUser;
     }
 }
