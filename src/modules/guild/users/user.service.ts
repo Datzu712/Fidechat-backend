@@ -4,10 +4,14 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
 import { sql } from '@/database/oracle/query-builder/sql-template';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
-    constructor(@Inject(DATABASE_CONNECTION) private readonly oracle: Connection) {}
+    constructor(
+        @Inject(DATABASE_CONNECTION) private readonly oracle: Connection,
+        private readonly userRepo: UserRepository,
+    ) {}
 
     /**
      * Synchronizes a user from Keycloak (KC) with the local Oracle database.
@@ -25,26 +29,9 @@ export class UserService {
         const username = kcUser.preferred_username || kcUser.name || kcUser.email;
 
         if (alreadyExistsUser) {
-            void this.oracle.execute(
-                ...sql`
-                    UPDATE APP_USER
-                        SET username = ${username}, email = ${kcUser.email}
-                    WHERE id = ${kcUser.sub}
-                `,
-                {
-                    autoCommit: true,
-                },
-            );
+            void this.userRepo.update(kcUser.sub, username, kcUser.email);
         } else {
-            await this.oracle.execute(
-                ...sql`
-                    INSERT INTO APP_USER (id, username, email)
-                    VALUES (${kcUser.sub}, ${username}, ${kcUser.email})
-                `,
-                {
-                    autoCommit: true,
-                },
-            );
+            await this.userRepo.insert(kcUser.sub, username, kcUser.email);
         }
     }
 }

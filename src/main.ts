@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment -- todo check fastify type errors */
 import './instrumentation';
 
 import { NestFactory } from '@nestjs/core';
@@ -12,7 +11,7 @@ import Fastify from 'fastify';
 import { Logger } from './common/logger/logger.service';
 import { AppModule } from './modules/app.module';
 import { requestLogger } from '@/common/logger/request.logger';
-// import { IoAdapter } from '@nestjs/platform-socket.io';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 const logger = new Logger('Fidechat', {
     logLevels: ['debug', 'error', 'warn', 'verbose', 'log'],
@@ -36,14 +35,11 @@ async function bootstrap() {
         logger,
     });
 
-    // @ts-ignore -- just to shut up the silly type checker
     void app.register(helmet);
-    // @ts-ignore -- just to shut up the silly type checker
     void app.register(compression);
-    // @ts-ignore -- just to shut up the silly type checker
     void app.register(fastifyCSRF);
 
-    //app.useWebSocketAdapter(new IoAdapter(app));
+    app.useWebSocketAdapter(new IoAdapter(app));
     app.enableVersioning({
         type: VersioningType.URI,
     });

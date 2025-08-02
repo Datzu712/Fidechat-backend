@@ -12,7 +12,9 @@ import { DatabaseModule } from '@/database/database.module';
 import { ChannelModule } from './channel/channel.module';
 import { KeycloakModule } from './auth/keycloak/keycloak.module';
 import { KeycloakSyncInterceptor } from './auth/keycloak/keycloak-sync.interceptor';
-import { UserModule } from './users/user.module';
+import { UserModule } from './guild/users/user.module';
+import { GuildModule } from './guild/guild.module';
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
     imports: [
@@ -24,6 +26,8 @@ import { UserModule } from './users/user.module';
         ChannelModule,
         KeycloakModule,
         UserModule,
+        GuildModule,
+        GatewayModule,
     ],
     providers: [
         {

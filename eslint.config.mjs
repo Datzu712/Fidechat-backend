@@ -70,6 +70,7 @@ export default tseslint.config(
             '@typescript-eslint/class-methods-use-this': 'off',
             '@typescript-eslint/no-floating-promises': 'warn',
             '@typescript-eslint/no-unsafe-argument': 'warn',
+            '@typescript-eslint/return-await': 'off',
         },
     },
 );

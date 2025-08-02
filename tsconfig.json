@@ -24,8 +24,8 @@
       "@/*": [
         "src/*"
       ],
-      "@db/*": [
-        "src/database/*"
+      "@types/*": [
+        "types/*"
       ],
     },
     "typeRoots": [

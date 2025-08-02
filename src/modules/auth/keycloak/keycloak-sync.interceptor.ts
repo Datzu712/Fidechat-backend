@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 
-import { UserService } from '@/modules/users/user.service';
+import { UserService } from '@/modules/guild/users/user.service';
 import { Logger } from '@/common/logger';
 
 @Injectable()
