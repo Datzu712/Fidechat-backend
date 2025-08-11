@@ -19,7 +19,7 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy {
 
     @WebSocketServer()
     public server!: SocketServer;
-    private client: JwksClient;
+    private readonly client: JwksClient;
 
     constructor(private readonly config: ConfigService<IEnvironmentVariables>) {
         this.logger.log('Initializing WebSocket Gateway...');
