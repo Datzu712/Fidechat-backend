@@ -13,24 +13,34 @@ export class UserRepository {
     }
 
     // todo change update and insert to upsert
-    async update(id: string, username: string, email: string) {
+    async update(id: string, username: string, email: string, avatarUrl: string | null = null) {
         return this.oracle.execute(
             ...sql`
                 UPDATE APP_USER
-                    SET username = ${username}, email = ${email}
+                    SET username = ${username}, email = ${email}, AVATAR_URL = ${avatarUrl}
                 WHERE id = ${id}
             `,
             { autoCommit: true },
         );
     }
 
-    async insert(id: string, username: string, email: string) {
-        return this.oracle.execute(
-            ...sql`
+    async insert(id: string, username: string, email: string, avatarUrl: string | null = null) {
+        if (avatarUrl) {
+            return this.oracle.execute(
+                ...sql`
+                INSERT INTO APP_USER (id, username, email, avatar_url)
+                VALUES (${id}, ${username}, ${email}, ${avatarUrl})
+            `,
+                { autoCommit: true },
+            );
+        } else {
+            return this.oracle.execute(
+                ...sql`
                 INSERT INTO APP_USER (id, username, email)
                 VALUES (${id}, ${username}, ${email})
             `,
-            { autoCommit: true },
-        );
+                { autoCommit: true },
+            );
+        }
     }
 }

@@ -15,6 +15,6 @@ export class SyncController {
 
     @Get()
     async syncCurrentUser(@AuthenticatedUser() user: IReqUser) {
-        return this.syncService.getCurrentUserData(user.sub);
+        return this.syncService.getCurrentUserData(user);
     }
 }

@@ -10,6 +10,10 @@ CREATE OR REPLACE PACKAGE pkg_sync_data AS
     FUNCTION fn_get_sync_data(
         p_user_id IN VARCHAR2
     ) RETURN CLOB;
+
+    FUNCTION fn_get_guilds(
+        p_user_id IN VARCHAR2
+    ) RETURN CLOB;
 END pkg_sync_data;
 /
 
@@ -25,7 +29,16 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
                                    'name' VALUE g.name,
                                    'iconUrl' VALUE g.icon_url,
                                    'isPublic' VALUE g.is_public,
-                                   'ownerId' VALUE g.owner_id
+                                   'ownerId' VALUE g.owner_id,
+                                    'members' VALUE (
+                                   SELECT JSON_ARRAYAGG(
+                                              JSON_OBJECT(
+                                                  'userId' VALUE gu.user_id
+                                              ) RETURNING CLOB
+                                          )
+                                   FROM guild_users gu
+                                   WHERE gu.guild_id = g.id
+                               ) RETURNING CLOB
                            ) RETURNING CLOB
                    ), '[]')
         INTO v_result
@@ -70,11 +83,13 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
         v_result   CLOB;
         v_guilds   CLOB;
         v_channels CLOB;
+        v_current_user CLOB;
     BEGIN
         v_guilds := fn_get_guilds(p_user_id);
         v_channels := fn_get_channels(p_user_id);
+        v_current_user := PKG_USER.GET_USER_JSON(p_user_id);
 
-        v_result := '{ "guilds": ' || v_guilds || ', "channels": ' || v_channels || ' }';
+        v_result := '{ "guilds": ' || v_guilds || ', "channels": ' || v_channels || ', "currentUser": ' || v_current_user || '}';
 
         RETURN v_result;
     END fn_get_sync_data;
@@ -84,3 +99,4 @@ END pkg_sync_data;
 
 SELECT pkg_sync_data.fn_get_sync_data('bbc0bc47-023c-409f-9d73-62ddea2efd90')
 FROM DUAL;
+

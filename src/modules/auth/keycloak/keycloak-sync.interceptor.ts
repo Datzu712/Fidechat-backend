@@ -9,6 +9,7 @@ import type { FastifyRequest } from 'fastify';
 
 import { UserService } from '@/modules/user/user.service';
 import { Logger } from '@/common/logger';
+import { inspect } from 'node:util';
 
 @Injectable()
 export class KeycloakSyncInterceptor implements NestInterceptor {
@@ -20,6 +21,8 @@ export class KeycloakSyncInterceptor implements NestInterceptor {
             Logger.debug('No user found in request', 'KeycloakSyncInterceptor');
             throw new UnauthorizedException();
         }
+
+        // azure doesn't send a user profile photo URL bruh
         await this.userService.syncUsersFromKC(request.user);
 
         return next.handle();

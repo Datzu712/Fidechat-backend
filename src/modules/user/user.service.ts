@@ -26,11 +26,12 @@ export class UserService {
             .rows?.[0];
 
         const username = kcUser.preferred_username || kcUser.name || kcUser.email;
+        const pictureUrl = kcUser.picture || kcUser.avatarUrl || null;
 
         if (alreadyExistsUser) {
-            void this.userRepo.update(kcUser.sub, username, kcUser.email);
+            void this.userRepo.update(kcUser.sub, username, kcUser.email, pictureUrl);
         } else {
-            await this.userRepo.insert(kcUser.sub, username, kcUser.email);
+            await this.userRepo.insert(kcUser.sub, username, kcUser.email, pictureUrl);
         }
     }
 }
