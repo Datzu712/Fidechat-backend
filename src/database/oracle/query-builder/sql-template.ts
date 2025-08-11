@@ -24,6 +24,7 @@ export function sql(queryParts: TemplateStringsArray, ...parameters: any[]): [st
 }
 
 function parameterIndexes(currentParameters: any[], index: number): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const newIndex = currentParameters.slice(0, index).reduce((p, c) => p + (Array.isArray(c) ? c.length : 1), 0);
     const parameter = currentParameters[index];
 

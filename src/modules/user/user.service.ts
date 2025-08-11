@@ -1,4 +1,3 @@
-import type { IReqUser } from 'types/fastify';
 import type { Connection } from 'oracledb';
 import { Inject, Injectable } from '@nestjs/common';
 
