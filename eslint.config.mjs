@@ -46,7 +46,7 @@ export default tseslint.config(
             'use-isnan': 'error',
             'no-fallthrough': 'error',
             'no-empty-pattern': 'error',
-            'no-redeclare': 'error',
+            'no-redeclare': 'off',
             'no-self-assign': 'error',
             '@typescript-eslint/semi': 0,
             '@typescript-eslint/indent': 0,

@@ -5,6 +5,10 @@ import { ConfigService } from '@nestjs/config';
 import type { OnModuleDestroy } from '@nestjs/common';
 import { Logger } from '@/common/logger';
 
+export enum SocketEvents {
+    GUILD_CREATED = 'guildCreate',
+}
+
 @WebSocketGateway({
     cors: {
         origin: process.env.CORS_ORIGIN || '*',
@@ -77,6 +81,11 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy {
                 }
             },
         );
+    }
+
+    public emitToUser(userId: string, event: keyof ServerToClientEvents, data: any) {
+        console.log(this.server.sockets.adapter.rooms);
+        this.server.to(userId).emit(event, data);
     }
 
     public onModuleDestroy() {

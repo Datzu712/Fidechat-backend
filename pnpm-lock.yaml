@@ -74,6 +74,9 @@ importers:
       socket.io:
         specifier: ^4.8.1
         version: 4.8.1
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -1746,8 +1749,8 @@ packages:
     resolution: {integrity: sha512-rNjApaLzuwaOTjCiT8lSDdGN1APCiqkChLMJxJPWLunPAt5fy8xgU9/jNOchV84wfIxrA0lRQB7oCT8jrn/wrQ==}
     engines: {node: '>=6.0'}
 
-  chromedriver@138.0.5:
-    resolution: {integrity: sha512-WE5O09if9TmFfIpvydt5dyhj+TNTUttvnujoRtAShQuDghulSh1HFirBnjNrAWjEoMkXn9VUw+cCYzZ597VPJQ==}
+  chromedriver@139.0.0:
+    resolution: {integrity: sha512-4hzJhx2B2WbGP1160KaDkAIWMHmEBabldes1SrU75JwrzviYevopcVCxQw9B9Ykx+500ij06fv2retL5mK7DbA==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -3998,6 +4001,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
+
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
 
@@ -5991,7 +5998,7 @@ snapshots:
 
   chrome-trace-event@1.0.4: {}
 
-  chromedriver@138.0.5:
+  chromedriver@139.0.0:
     dependencies:
       '@testim/chrome-version': 1.1.4
       axios: 1.11.0
@@ -7351,7 +7358,7 @@ snapshots:
     dependencies:
       jwk-to-pem: 2.0.7
     optionalDependencies:
-      chromedriver: 138.0.5
+      chromedriver: 139.0.0
     transitivePeerDependencies:
       - debug
       - supports-color
@@ -8571,6 +8578,8 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
+
+  uuid@11.1.0: {}
 
   v8-compile-cache-lib@3.0.1: {}
 
