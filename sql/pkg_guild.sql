@@ -82,17 +82,3 @@ CREATE OR REPLACE PACKAGE BODY PKG_GUILD AS
 
 END PKG_GUILD;
 /
-
-
-DECLARE
-    v_id VARCHAR2(50) := '3C1162D2-E0D9-0323-E063-020017ACF950';
-    v_fields VARCHAR2(4000) := 'NAME = ''AAAAAAAAAAAAAA'''; 
-    -- Llamada al procedimiento
-    PKG_GUILD.UPDATE_GUILD(P_ID => v_id, P_FIELDS => v_fields);
-
-    DBMS_OUTPUT.PUT_LINE('Guild actualizada correctamente.');
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
-END;
-/

@@ -10,10 +10,6 @@ CREATE OR REPLACE PACKAGE pkg_sync_data AS
     FUNCTION fn_get_sync_data(
         p_user_id IN VARCHAR2
     ) RETURN CLOB;
-
-    FUNCTION fn_get_guilds(
-        p_user_id IN VARCHAR2
-    ) RETURN CLOB;
 END pkg_sync_data;
 /
 
@@ -30,15 +26,13 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
                                    'iconUrl' VALUE g.icon_url,
                                    'isPublic' VALUE g.is_public,
                                    'ownerId' VALUE g.owner_id,
-                                    'members' VALUE (
-                                   SELECT JSON_ARRAYAGG(
-                                              JSON_OBJECT(
-                                                  'userId' VALUE gu.user_id
-                                              ) RETURNING CLOB
-                                          )
-                                   FROM guild_users gu
-                                   WHERE gu.guild_id = g.id
-                               ) RETURNING CLOB
+                                   'members' VALUE (SELECT JSON_ARRAYAGG(
+                                                                   JSON_OBJECT(
+                                                                           'userId' VALUE gu.user_id
+                                                                   ) RETURNING CLOB
+                                                           )
+                                                    FROM guild_users gu
+                                                    WHERE gu.guild_id = g.id) RETURNING CLOB
                            ) RETURNING CLOB
                    ), '[]')
         INTO v_result
@@ -56,17 +50,17 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
         v_result CLOB;
     BEGIN
         SELECT NVL(
-            JSON_ARRAYAGG(
-                JSON_OBJECT(
-                   'id' VALUE c.id,
-                   'name' VALUE c.name,
-                   'description' VALUE c.description,
-                   'position' VALUE c.position,
-                   'guildId' VALUE c.guild_id
-               ) RETURNING CLOB
-            ),
-            '[]'
-        )
+                       JSON_ARRAYAGG(
+                               JSON_OBJECT(
+                                       'id' VALUE c.id,
+                                       'name' VALUE c.name,
+                                       'description' VALUE c.description,
+                                       'position' VALUE c.position,
+                                       'guildId' VALUE c.guild_id
+                               ) RETURNING CLOB
+                       ),
+                       '[]'
+               )
         INTO v_result
         FROM channel c
                  INNER JOIN guild g ON c.guild_id = g.id
@@ -80,22 +74,25 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
     FUNCTION fn_get_sync_data(
         p_user_id IN VARCHAR2
     ) RETURN CLOB IS
-        v_result   CLOB;
-        v_guilds   CLOB;
-        v_channels CLOB;
+        v_result       CLOB;
+        v_guilds       CLOB;
+        v_channels     CLOB;
         v_current_user CLOB;
     BEGIN
         v_guilds := fn_get_guilds(p_user_id);
         v_channels := fn_get_channels(p_user_id);
         v_current_user := PKG_USER.GET_USER_JSON(p_user_id);
 
-        v_result := '{ "guilds": ' || v_guilds || ', "channels": ' || v_channels || ', "currentUser": ' || v_current_user || '}';
+        v_result :=
+                '{ "guilds": ' || v_guilds || ', "channels": ' || v_channels || ', "currentUser": ' || v_current_user ||
+                '}';
 
         RETURN v_result;
     END fn_get_sync_data;
 END pkg_sync_data;
 /
 
+alter package pkg_sync_data compile;
 
 SELECT pkg_sync_data.fn_get_sync_data('bbc0bc47-023c-409f-9d73-62ddea2efd90')
 FROM DUAL;
