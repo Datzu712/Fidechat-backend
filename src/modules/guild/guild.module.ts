@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { GuildController } from './guild.controller';
 import { GuildService } from './guild.service';
 import { GuildRepository } from './guild.repository';
-import { GatewayService } from '../gateway/gateway.service';
+import { GatewayModule } from '../gateway/gateway.module';
 
 @Module({
     controllers: [GuildController],
-    providers: [GuildService, GuildRepository, GatewayService],
+    providers: [GuildService, GuildRepository],
+    imports: [GatewayModule],
 })
 export class GuildModule {}

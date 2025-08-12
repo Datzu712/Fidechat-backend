@@ -17,7 +17,7 @@ export class GuildService {
             await this.guildRepository.createGuild(ownerId, dto);
 
             // eslint-disable-next-line @typescript-eslint/no-misused-spread -- silly rule
-            this.gateway.emitToUser(ownerId, SocketEvents.GUILD_CREATED, { ...dto, ownerId, id: v4() });
+            this.gateway.emitToUser(ownerId, SocketEvents.GUILD_CREATE, { ...dto, ownerId, id: v4() });
         } catch (error) {
             if (!(error instanceof HttpException)) {
                 throw new InternalServerErrorException('Failed to create guild', { cause: error });

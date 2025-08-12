@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import oracledb from 'oracledb';
+import oracledb, { ResultSet } from 'oracledb';
 
 import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
 import { sql } from '@/database/oracle/query-builder/sql-template';
 import { Logger } from '@/common/logger';
+import { AppUser } from '@/database/oracle/types/user';
 
 @Injectable()
 export class SyncRepository {

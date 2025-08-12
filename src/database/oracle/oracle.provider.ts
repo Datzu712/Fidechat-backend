@@ -4,6 +4,7 @@ import oracledb from 'oracledb';
 
 export const DATABASE_CONNECTION = Symbol('ORACLE_SEQUELIZE_CONNECTION');
 
+// todo: use a connection pool instead of a single connection
 export const OracleProvider = {
     provide: DATABASE_CONNECTION,
     useFactory: async (configService: ConfigService<IEnvironmentVariables>) => {

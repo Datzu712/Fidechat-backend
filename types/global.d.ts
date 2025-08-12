@@ -17,6 +17,10 @@ declare interface IEnvironmentVariables {
     KEYCLOAK_CLIENT_SECRET: string;
 }
 
+declare type UppercaseKeys<T> = {
+    [K in keyof T as Uppercase<string & K>]: T[K];
+};
+
 declare interface IReqUser {
     exp: number;
     iat: number;

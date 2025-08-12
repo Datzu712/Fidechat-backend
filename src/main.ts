@@ -6,6 +6,7 @@ import { VersioningType } from '@nestjs/common';
 import helmet from '@fastify/helmet';
 import compression from '@fastify/compress';
 import fastifyCSRF from '@fastify/csrf-protection';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import Fastify from 'fastify';
 
 import { Logger } from './common/logger/logger.service';
@@ -50,6 +51,15 @@ async function bootstrap() {
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     });
     app.setGlobalPrefix('api');
+
+    const config = new DocumentBuilder()
+        .setTitle('Cats example')
+        .setDescription('The cats API description')
+        .setVersion('1.0')
+        .addTag('cats')
+        .build();
+    const documentFactory = () => SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, documentFactory);
 
     await app.listen(process.env.PORT || 3000);
 
