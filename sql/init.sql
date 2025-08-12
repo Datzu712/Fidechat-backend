@@ -36,21 +36,23 @@ create table GUILD
 
 create table GUILD_USERS
 (
-    ID       VARCHAR2(36) not null
-        constraint GUILD_USERS_PK
-            primary key,
     GUILD_ID VARCHAR2(36) not null
         constraint GUILD_USERS_GUILD_ID_FK
             references GUILD,
     USER_ID  VARCHAR2(36) not null
         constraint GUILD_USERS_USER_ID_FK
-            references "USER" (),
+            references APP_USER,
     constraint GUILD_USERS_PK_2
         unique (GUILD_ID, USER_ID)
 )
 /
 
 comment on table GUILD_USERS is 'Guild members'
+/
+
+alter table GUILD_USERS
+    add constraint GUILD_USERS_PK
+        primary key (GUILD_ID, USER_ID)
 /
 
 create table CHANNEL
