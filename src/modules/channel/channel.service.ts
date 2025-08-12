@@ -21,6 +21,7 @@ export class ChannelService {
             this.gateway.emitToUsers(guildMembers, SocketEvents.CHANNEL_CREATE, {
                 ...dto,
                 id: result.id,
+                guildId,
             });
 
             return result;
