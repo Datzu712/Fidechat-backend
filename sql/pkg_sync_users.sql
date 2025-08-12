@@ -30,6 +30,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
                'name' VALUE g.name,
                'iconUrl' VALUE g.icon_url,
                'isPublic' VALUE g.is_public,
+               'description' VALUE g.description,
                'ownerId' VALUE g.owner_id,
                'members' VALUE (
                     SELECT JSON_ARRAYAGG(
