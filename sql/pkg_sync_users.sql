@@ -82,7 +82,6 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
         RETURN v_result;
     END fn_get_related_users_json;
 
-
     FUNCTION fn_get_channels_json(
         p_user_id IN VARCHAR2
     ) RETURN CLOB IS
@@ -104,8 +103,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
         FROM channel c
                  INNER JOIN guild g ON c.guild_id = g.id
                  LEFT JOIN guild_users gu ON g.id = gu.guild_id
-        WHERE g.owner_id = p_user_id
-           OR gu.user_id = p_user_id;
+        WHERE gu.user_id = p_user_id;
 
         RETURN v_result;
     END fn_get_channels_json;
