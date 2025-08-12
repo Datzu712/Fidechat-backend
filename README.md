@@ -2,6 +2,8 @@
 
 A modern real-time chat application backend built with NestJS, Oracle Database, and WebSocket integration. This project features guild-based chat rooms, user authentication via Keycloak, and a robust database architecture with Oracle PL/SQL packages.
 
+![Fidechat Backend Architecture](/assets//web-sample1.png)
+
 ## Index
 
 1. [🚀 Features](#-features)
