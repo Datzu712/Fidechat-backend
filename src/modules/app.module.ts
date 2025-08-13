@@ -15,6 +15,7 @@ import { KeycloakSyncInterceptor } from './auth/keycloak/keycloak-sync.intercept
 import { UserModule } from './user/user.module';
 import { GuildModule } from './guild/guild.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { GatewayModule } from './gateway/gateway.module';
         GuildModule,
         GatewayModule,
         UserModule,
+        MessageModule,
     ],
     providers: [
         {

@@ -19,6 +19,7 @@ export class ChannelService {
             const guildMembers = (await this.userRepository.getGuildUsers(guildId))?.map((user) => user.ID) || [];
 
             this.gateway.emitToUsers(guildMembers, SocketEvents.CHANNEL_CREATE, {
+                // eslint-disable-next-line @typescript-eslint/no-misused-spread -- its just a dto bro
                 ...dto,
                 id: result.id,
                 guildId,

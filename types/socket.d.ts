@@ -1,5 +1,6 @@
-import { Channel } from '@/modules/channel/channel.repository';
+import type { Channel } from '@/modules/channel/channel.repository';
 import type { Guild } from '@/modules/guild/guild.repository';
+import type { Message } from '@/modules/message/message.repository';
 import type { Server, Socket } from 'socket.io';
 
 declare interface ClientToServerEvents {
@@ -20,6 +21,9 @@ declare global {
         channelCreate: (channelData: Channel) => void;
         ping: () => void;
         welcome: (message: string) => void;
+        messageCreate: (data: Message) => void;
+        // messageUpdate: (message: { id: string; content: string }) => void;
+        // messageDelete: (message: { id: string }) => void;
     }
     type SocketServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
     type SocketClient = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;

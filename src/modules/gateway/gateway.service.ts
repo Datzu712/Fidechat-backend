@@ -2,7 +2,7 @@ import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketSe
 import jwt from 'jsonwebtoken';
 import jwksClient, { JwksClient } from 'jwks-rsa';
 import { ConfigService } from '@nestjs/config';
-import { InternalServerErrorException, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
+import type { OnModuleDestroy } from '@nestjs/common';
 import { Logger } from '@/common/logger';
 
 export enum SocketEvents {
@@ -10,10 +10,10 @@ export enum SocketEvents {
     CHANNEL_CREATE = 'channelCreate',
     // CHANNEL_UPDATED = 'channelUpdate',
     // CHANNEL_DELETED = 'channelDelete',
+    MESSAGE_CREATE = 'messageCreate',
+    // MESSAGE_UPDATED = 'messageUpdate',
+    // MESSAGE_DELETED = 'messageDelete',
 }
-
-const UUID_V4_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
-
 @WebSocketGateway({
     cors: {
         origin: process.env.CORS_ORIGIN || '*',
@@ -50,11 +50,12 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
     }
 
     public handleConnection(socket: SocketClient) {
-        console.log(this.server.sockets.adapter.rooms);
-        let token: string | undefined = socket.handshake.auth?.token;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- type shii
+        let token: string | undefined = socket.handshake.auth.token;
         if (this.config.get('NODE_ENV') === 'development' && !token) {
             // In development mode, we allow a token to be passed through header "access-token" (for postman)
-            token = socket.handshake.headers['access-token'] as string | undefined;
+            const accessToken = socket.handshake.headers['access-token'];
+            token = typeof accessToken === 'string' ? accessToken : undefined;
         }
 
         if (!token) {
@@ -79,9 +80,15 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
                     this.logger.error(`${socket.handshake.address} tried to connect with an invalid token`);
                 } else {
                     const payload = decoded.payload;
-                    const userId = payload.sub as string;
+                    const userId = payload.sub;
 
-                    if (!userId || !UUID_V4_REGEX.test(userId)) {
+                    if (typeof userId !== 'string') {
+                        this.logger.error(`Invalid or missing 'sub' in token payload: ${JSON.stringify(payload)}`);
+                        socket.disconnect();
+                        return;
+                    }
+
+                    if (!userId) {
                         this.logger.error(`Invalid token payload: ${JSON.stringify(payload)}`);
                         socket.disconnect();
                         return;
@@ -99,26 +106,21 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
         );
     }
 
-    public emitToUser(userId: string, event: keyof ServerToClientEvents, data: any) {
-        if (!event) {
-            this.logger.error('Event is required to emit to user!');
-            throw new InternalServerErrorException();
+    public emitToChannel(channelId: string, event: keyof ServerToClientEvents, data: any) {
+        if (!channelId) {
+            throw new Error('Channel ID is required');
         }
+        this.server.to(`channel:${channelId}`).emit(event, data);
+    }
 
-        console.log(`Emitting event ${event} to user ${userId}`);
-        console.log(this.server.sockets.adapter.rooms);
+    public emitToUser(userId: string, event: keyof ServerToClientEvents, data: any) {
         this.server.to(userId).emit(event, data);
     }
 
     public emitToUsers(userIds: string[], event: keyof ServerToClientEvents, data: any) {
-        if (!userIds || userIds.length === 0) {
+        if (userIds.length === 0) {
             this.logger.error('User IDs are required to emit to users!');
             return;
-        }
-
-        if (!event) {
-            this.logger.error('Event is required to emit to users!');
-            throw new InternalServerErrorException();
         }
 
         this.logger.debug(`Emitting event ${event} to users: ${userIds.join(', ')}`);
