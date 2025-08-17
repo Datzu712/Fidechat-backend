@@ -58,9 +58,9 @@ export class UserRepository {
      * This method executes the stored procedure 'sp_get_guild_users' which returns a SYS_REFCURSOR
      * containing the guild users' information.
      */
-    async getGuildUsers(guildId: string): Promise<UppercaseKeys<AppUser>[] | undefined> {
+    async getGuildUsers(guildId: string): Promise<Array<UppercaseKeys<AppUser>> | undefined> {
         try {
-            const result = await this.oracle.execute(
+            const result = await this.oracle.execute<{ p_rc: oracledb.ResultSet<UppercaseKeys<AppUser>> }>(
                 `BEGIN sp_get_guild_users(:p_guild_id, :p_rc); END;`,
                 {
                     p_guild_id: guildId,
@@ -69,7 +69,7 @@ export class UserRepository {
                 { outFormat: oracledb.OUT_FORMAT_OBJECT },
             );
 
-            const cur = (result.outBinds as { p_rc: oracledb.ResultSet<UppercaseKeys<AppUser>> }).p_rc; // ResultSet del SYS_REFCURSOR
+            const cur = result.outBinds!.p_rc;
 
             const allRows = await cur.getRows();
 
