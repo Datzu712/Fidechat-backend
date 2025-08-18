@@ -90,7 +90,7 @@ Create a `.env` file in the root directory with the following variables:
 ```env
 # Application
 NODE_ENV=development
-PORT=3000
+API_PORT=3000
 
 # Oracle Database
 ORACLE_HOST=localhost

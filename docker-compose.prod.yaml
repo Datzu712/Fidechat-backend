@@ -1,0 +1,143 @@
+# Cliente (Internet) → Puerto 80/443 (Nginx) → localhost:3000/8443 (Servicios Docker)
+
+services:
+  oracle:
+    image: container-registry.oracle.com/database/express:18.4.0-xe
+    restart: always
+    ports:
+      - "${ORACLE_PORT:-1521}:1521"
+    env_file:
+      - .env
+    environment:
+      - ORACLE_PWD=${ORACLE_PWD:?error}
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    networks:
+      - fidechat-network
+    # healthcheck:
+    #   test: ["CMD", "sqlplus", "-L", "sys/${ORACLE_PWD}@//localhost:1521/XE as sysdba", "@healthcheck.sql"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+    #   start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    container_name: fidechat-keycloak-postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${KC_DB_USERNAME:?error}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:?error}
+      POSTGRES_DB: ${KC_DB_NAME:-keycloak}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${KC_DB_USERNAME} -d ${KC_DB_NAME:-keycloak}'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - pg_keycloak_data:/var/lib/postgresql/data
+    networks:
+      - fidechat-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    restart: always
+    container_name: fidechat-keycloak
+    env_file:
+      - .env
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_DATABASE: 
+      KC_DB_USERNAME: ${KC_DB_USERNAME:-${KC_DB_USERNAME:?error}}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:-${KC_DB_PASSWORD:?error}}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_DB_URL: ${KC_DB_URL:-jdbc:postgresql://postgres:5432/${KC_DB_NAME:-keycloak}}
+
+      # Production settings
+      KC_HOSTNAME: ${KC_HOSTNAME:?error}
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      # KC_HTTPS_CERTIFICATE_FILE: ${KC_CERT_FILE:?error}
+      # KC_HTTPS_CERTIFICATE_KEY_FILE: ${KC_KEY_FILE:?error}
+      KC_PROXY: edge
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${KC_PORT:-8080}:8080"
+    command: start
+    # volumes:
+    #   - keycloak_certs:/opt/keycloak/conf/certs
+    networks:
+      - fidechat-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  backend:
+    build:
+      context: .
+      dockerfile: dockerfile.prod
+    container_name: fidechat-backend
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      oracle:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    ports:
+      - "127.0.0.1:${API_PORT:-8080}:8080"
+    networks:
+      - fidechat-network
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:${API_PORT:-8080}/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 40s todos lmfao
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+networks:
+  fidechat-network:
+    driver: bridge
+
+volumes:
+  pg_keycloak_data:
+    # driver: local
+    # driver_opts:
+    #   type: none
+    #   device: ${POSTGRES_DATA_PATH:-/var/lib/fidechat/postgres-data}
+    #   o: bind
+  oracle_data:
+    # driver: local
+    # driver_opts:
+    #   type: none
+    #   device: ${ORACLE_DATA_PATH:-/var/lib/fidechat/oracle-data}
+    #   o: bind
+#   keycloak_certs:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: ${KC_CERTS_PATH:-/etc/fidechat/certs}
+#       o: bind

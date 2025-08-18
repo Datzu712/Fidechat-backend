@@ -1,7 +1,7 @@
 declare interface IEnvironmentVariables {
     // Api
     NODE_ENV: 'development' | 'production' | 'test';
-    PORT: number;
+    API_PORT: number;
 
     // Oracle
     ORACLE_PWD: string;

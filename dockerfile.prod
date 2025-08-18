@@ -1,0 +1,66 @@
+# Docker production build file
+
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN pnpm build
+
+# Remove development dependencies
+RUN pnpm prune --prod
+
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+
+# Set environment to production
+ENV NODE_ENV=production
+
+# Install Oracle Instant Client
+# RUN apk --no-cache add libaio libc6-compat curl unzip && \
+#     curl -o instantclient.zip https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linuxx64.zip -SL && \
+#     unzip instantclient.zip && \
+#     rm instantclient.zip && \
+#     mv instantclient*/ /instantclient && \
+#     ln -s /instantclient/libclntsh.so.19.1 /instantclient/libclntsh.so && \
+#     ln -s /instantclient/libocci.so.19.1 /instantclient/libocci.so && \
+#     apk add --no-cache bash
+
+ENV LD_LIBRARY_PATH=/instantclient
+
+# Copy from builder stage
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./package.json
+
+# Copy SQL scripts needed for application
+# COPY ./sql ./sql
+
+# Create a non-root user to run the application
+# RUN addgroup -g 1001 -S nodejs && \
+#     adduser -S nodejs -u 1001 -G nodejs
+
+# Switch to non-root user
+#USER nodejs
+
+# Create a health check script
+# COPY ./healthcheck.sh ./healthcheck.sh
+# RUN chmod +x ./healthcheck.sh
+
+# Start the application
+CMD ["node", "dist/main.js"]
+
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 CMD ./healthcheck.sh todo

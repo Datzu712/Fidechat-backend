@@ -59,6 +59,9 @@ importers:
       fastify:
         specifier: ^5.4.0
         version: 5.4.0
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.2
       jwks-rsa:
         specifier: ^3.2.0
         version: 3.2.0
@@ -129,9 +132,6 @@ importers:
       globals:
         specifier: ^16.3.0
         version: 16.3.0
-      jsonwebtoken:
-        specifier: ^9.0.2
-        version: 9.0.2
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -1801,8 +1801,8 @@ packages:
     resolution: {integrity: sha512-rNjApaLzuwaOTjCiT8lSDdGN1APCiqkChLMJxJPWLunPAt5fy8xgU9/jNOchV84wfIxrA0lRQB7oCT8jrn/wrQ==}
     engines: {node: '>=6.0'}
 
-  chromedriver@139.0.0:
-    resolution: {integrity: sha512-4hzJhx2B2WbGP1160KaDkAIWMHmEBabldes1SrU75JwrzviYevopcVCxQw9B9Ykx+500ij06fv2retL5mK7DbA==}
+  chromedriver@139.0.1:
+    resolution: {integrity: sha512-K16mpBWhVMY/85k+1pf2ZuCOCDNJxSfr/OuIh7YbWoVIT+baNlyB6OvVh2WQw+MYQK2fg7CS0rMUE8GvMY6oCA==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -6107,7 +6107,7 @@ snapshots:
 
   chrome-trace-event@1.0.4: {}
 
-  chromedriver@139.0.0:
+  chromedriver@139.0.1:
     dependencies:
       '@testim/chrome-version': 1.1.4
       axios: 1.11.0
@@ -7464,7 +7464,7 @@ snapshots:
     dependencies:
       jwk-to-pem: 2.0.7
     optionalDependencies:
-      chromedriver: 139.0.0
+      chromedriver: 139.0.1
     transitivePeerDependencies:
       - debug
       - supports-color

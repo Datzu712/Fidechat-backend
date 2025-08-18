@@ -40,7 +40,7 @@ export class EnvironmentVariables implements IEnvironmentVariables {
     // Api
     @IsNumber()
     @Min(1)
-    PORT!: number;
+    API_PORT!: number;
 
     @IsEnum(Environment)
     NODE_ENV!: Environment;
