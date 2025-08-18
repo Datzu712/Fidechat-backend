@@ -45,11 +45,13 @@ services:
 
       # Production settings
       KC_HOSTNAME: ${KC_HOSTNAME:?error}
-      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT: "true"
       KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT_HTTPS: "true"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:?error}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:?error}
       KC_HTTP_RELATIVE_PATH: ${KC_HTTP_RELATIVE_PATH:?error}
+      KC_HOSTNAME_ADMIN: ${KC_HOSTNAME_ADMIN:?error}
       KC_PROXY: edge
     depends_on:
       postgres:
