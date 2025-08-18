@@ -49,6 +49,7 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:?error}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:?error}
+      KC_HTTP_RELATIVE_PATH: ${KC_HTTP_RELATIVE_PATH:?error}
       KC_PROXY: edge
     depends_on:
       postgres:
