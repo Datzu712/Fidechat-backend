@@ -88,11 +88,11 @@ services:
     #   timeout: 10s
     #   retries: 3
     #   start_period: 40s todos lmfao
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 1G
+    #       cpus: '0.5'
 
 networks:
   fidechat-network:
