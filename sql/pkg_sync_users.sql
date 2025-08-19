@@ -1,26 +1,14 @@
 CREATE OR REPLACE PACKAGE pkg_sync_data AS
-    FUNCTION fn_get_guilds_json(
-        p_user_id IN VARCHAR2
-    ) RETURN CLOB;
-
-    FUNCTION fn_get_related_users_json(
-        p_user_id IN VARCHAR2
-    ) RETURN CLOB;
-
-    FUNCTION fn_get_channels_json(
-        p_user_id IN VARCHAR2
-    ) RETURN CLOB;
-
-    FUNCTION fn_get_sync_data(
-        p_user_id IN VARCHAR2
-    ) RETURN CLOB;
+    FUNCTION fn_get_guilds_json(p_user_id IN VARCHAR2) RETURN CLOB;
+    FUNCTION fn_get_related_users_json(p_user_id IN VARCHAR2) RETURN CLOB;
+    FUNCTION fn_get_channels_json(p_user_id IN VARCHAR2) RETURN CLOB;
+    FUNCTION fn_get_sync_data(p_user_id IN VARCHAR2) RETURN CLOB;
 END pkg_sync_data;
 /
 
 CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
-    FUNCTION fn_get_guilds_json(
-        p_user_id IN VARCHAR2
-    ) RETURN CLOB IS
+
+    FUNCTION fn_get_guilds_json(p_user_id IN VARCHAR2) RETURN CLOB IS
         v_result CLOB;
     BEGIN
         SELECT NVL(
@@ -40,7 +28,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
                                                         FROM guild_users gu
                                                         WHERE gu.guild_id = g.id) RETURNING CLOB
                                ) RETURNING CLOB
-                       ), '[]')
+                       ), TO_CLOB('[]'))
         INTO v_result
         FROM guild g
                  LEFT JOIN guild_users gu ON g.id = gu.guild_id
@@ -49,10 +37,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
         RETURN v_result;
     END fn_get_guilds_json;
 
-    FUNCTION fn_get_related_users_json(
-        p_user_id IN VARCHAR2
-    ) RETURN CLOB
-        IS
+    FUNCTION fn_get_related_users_json(p_user_id IN VARCHAR2) RETURN CLOB IS
         v_result CLOB;
     BEGIN
         SELECT NVL(
@@ -60,11 +45,9 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
                                JSON_OBJECT(
                                        'id' VALUE id,
                                        'username' VALUE username,
-                                       'avatarUrl' VALUE avatar_url
+                                       'avatarUrl' VALUE AVATAR_URL
                                ) RETURNING CLOB
-                       ),
-                       '[]'
-               )
+                       ), TO_CLOB('[]'))
         INTO v_result
         FROM (SELECT u.id, u.username, u.avatar_url
               FROM app_user u
@@ -78,70 +61,65 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
         RETURN v_result;
     END fn_get_related_users_json;
 
-    FUNCTION fn_get_channels_json(
-        p_user_id IN VARCHAR2
-    ) RETURN CLOB IS
+    FUNCTION fn_get_channels_json(p_user_id IN VARCHAR2) RETURN CLOB IS
         v_result CLOB;
     BEGIN
         SELECT JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'id' VALUE c.id,
-                'name' VALUE c.name,
-                'description' VALUE c.description,
-                'position' VALUE c.position,
-                'guildId' VALUE c.guild_id,
-                'messages' VALUE COALESCE(
-                    (
-                        SELECT JSON_ARRAYAGG(
-                            JSON_OBJECT(
-                                'id' VALUE m.id,
-                                'content' VALUE m.content,
-                                'authorId' VALUE m.author_id,
-                                'createdAt' VALUE m.created_at
-                            )
-                        )
-                        FROM message m
-                        WHERE m.channel_id = c.id
-                    ),
-                    JSON_ARRAY() -- Esto creará un array vacío proper en JSON
-                )
-                FORMAT JSON
-            )
-        )
+                       JSON_OBJECT(
+                               'id' VALUE c.id,
+                               'name' VALUE c.name,
+                               'description' VALUE c.description,
+                               'position' VALUE c.position,
+                               'guildId' VALUE c.guild_id,
+                             'messages' VALUE (
+             SELECT JSON_ARRAYAGG(
+               JSON_OBJECT(
+                 'id' VALUE m.id,
+                 'content' VALUE m.content,
+                 'authorId' VALUE m.author_id,
+                 'createdAt' VALUE m.created_at
+               ) RETURNING CLOB
+             )
+             FROM message m
+             WHERE m.channel_id = c.id
+           ) RETURNING CLOB
+                       ) RETURNING CLOB
+               )
         INTO v_result
         FROM channel c
-        INNER JOIN guild g ON c.guild_id = g.id
-        LEFT JOIN guild_users gu ON g.id = gu.guild_id
+                 INNER JOIN guild g ON c.guild_id = g.id
+                 LEFT JOIN guild_users gu ON g.id = gu.guild_id
         WHERE gu.user_id = p_user_id;
 
-        RETURN COALESCE(v_result, '[]');
+        RETURN COALESCE(v_result, TO_CLOB('[]'));
     END fn_get_channels_json;
 
-    FUNCTION fn_get_sync_data(
-        p_user_id IN VARCHAR2
-    ) RETURN CLOB IS
-        v_result       CLOB;
+    FUNCTION fn_get_sync_data(p_user_id IN VARCHAR2) RETURN CLOB IS
         v_guilds       CLOB;
         v_channels     CLOB;
         v_current_user CLOB;
         v_users        CLOB;
+        v_result       CLOB;
     BEGIN
         v_guilds := fn_get_guilds_json(p_user_id);
         v_channels := fn_get_channels_json(p_user_id);
-        v_current_user := PKG_USER.GET_USER_JSON(p_user_id);
+        v_current_user := pkg_user.get_user_json(p_user_id);
         v_users := fn_get_related_users_json(p_user_id);
 
-        v_result :=
-                '{ "guilds": ' || v_guilds || ', "channels": ' || v_channels || ', "currentUser": ' || v_current_user ||
-                ', "users": ' || v_users || '}';
+        v_result := '{'
+            || '"guilds":' || v_guilds || ','
+            || '"channels":' || v_channels || ','
+            || '"currentUser":' || v_current_user || ','
+            || '"users":' || v_users
+            || '}';
 
         RETURN v_result;
     END fn_get_sync_data;
+
 END pkg_sync_data;
 /
 
-alter package pkg_sync_data compile;
+ALTER PACKAGE ADMIN.PKG_SYNC_DATA COMPILE BODY;
 
-SELECT pkg_sync_data.fn_get_sync_data('bbc0bc47-023c-409f-9d73-62ddea2efd90')
-FROM DUAL;
-
+select pkg_sync_data.fn_get_sync_data('8ad4726e-aba1-4e5d-ae88-d245d9a6c7b8')
+from dual;
