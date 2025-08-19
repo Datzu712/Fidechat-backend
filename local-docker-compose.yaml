@@ -55,5 +55,5 @@ services:
     command: start-dev
 
 volumes:
-  pg_keycloak_data:
+  pg_keycloak_data_local:
   oracle_data:

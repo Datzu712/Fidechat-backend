@@ -2,6 +2,8 @@ declare interface IEnvironmentVariables {
     // Api
     NODE_ENV: 'development' | 'production' | 'test';
     API_PORT: number;
+    SOCKET_NAMESPACE?: string;
+    CORS_ORIGIN: string;
 
     // Oracle
     ORACLE_PWD: string;

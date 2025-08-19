@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers -- Magic numbers are acceptable in this configuration file because all are just constants */
-import { IsEnum, IsNumber, IsString, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export enum Environment {
     Development = 'development',
@@ -7,6 +7,9 @@ export enum Environment {
     Test = 'test',
 }
 export class EnvironmentVariables implements IEnvironmentVariables {
+    @IsString()
+    CORS_ORIGIN!: string;
+
     // Keycloak
     @IsString()
     KEYCLOAK_URL!: string;
@@ -44,4 +47,8 @@ export class EnvironmentVariables implements IEnvironmentVariables {
 
     @IsEnum(Environment)
     NODE_ENV!: Environment;
+
+    @IsString()
+    @IsOptional()
+    SOCKET_NAMESPACE?: string | undefined;
 }

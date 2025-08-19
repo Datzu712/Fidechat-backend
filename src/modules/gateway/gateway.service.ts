@@ -16,9 +16,10 @@ export enum SocketEvents {
 }
 @WebSocketGateway({
     cors: {
-        origin: process.env.CORS_ORIGIN || '*',
+        origin: process.env.CORS_ORIGIN,
         credentials: true,
     },
+    namespace: process.env.SOCKET_NAMESPACE,
     serveClient: false,
     transports: ['websocket'],
     allowUpgrades: true,
