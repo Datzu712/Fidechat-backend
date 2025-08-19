@@ -54,7 +54,8 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
 
     public handleConnection(socket: SocketClient) {
         let token: string | undefined = socket.handshake.auth.token;
-        if (this.config.get('NODE_ENV') === 'development' && !token) {
+        if (!token) {
+            /*this.config.get('NODE_ENV') === 'development' && */
             // In development mode, we allow a token to be passed through header "access-token" (for postman)
             const accessToken = socket.handshake.headers['access-token'];
             token = typeof accessToken === 'string' ? accessToken : undefined;
