@@ -50,14 +50,14 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
                                ) RETURNING CLOB
                        ), TO_CLOB('[]'))
         INTO v_result
-        FROM (SELECT u.id, u.username, u.avatar_url
+        FROM (SELECT u.id, u.username, u.avatar_url, u.IS_BOT
               FROM app_user u
                        JOIN guild_users gu ON u.id = gu.user_id
               WHERE gu.guild_id IN (SELECT guild_id
                                     FROM guild_users
                                     WHERE user_id = p_user_id)
                 AND u.id <> p_user_id
-              GROUP BY u.id, u.username, u.avatar_url);
+              GROUP BY u.id, u.username, u.avatar_url, u.IS_BOT);
 
         RETURN v_result;
     END fn_get_related_users_json;
