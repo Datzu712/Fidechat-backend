@@ -1,7 +1,7 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, ValidationPipe } from '@nestjs/common';
 import { AuthenticatedUser } from 'nest-keycloak-connect';
 import { MessageService } from './message.service';
-import { CreateMessageDto } from './dto/message.dto';
+import { MessageDto } from './dto/message.dto';
 @Controller({
     version: '1',
     path: 'guilds/:guildId/channels/:channelId/messages',
@@ -13,7 +13,15 @@ export class MessageController {
     async createMessage(
         @Param('channelId') channelId: string,
         @AuthenticatedUser() user: IReqUser,
-        @Body() body: CreateMessageDto,
+        @Body(
+            new ValidationPipe({
+                transform: true,
+                transformOptions: { enableImplicitConversion: true },
+                whitelist: true,
+                groups: ['create'],
+            }),
+        )
+        body: MessageDto,
     ) {
         return this.messageService.createMessage({
             content: body.content,
@@ -22,27 +30,25 @@ export class MessageController {
         });
     }
 
-    // @Get()
-    // async getChannelMessages(
-    //     @Param('channelId') channelId: string,
-    //     @Query('limit') limit?: number,
-    //     @Query('offset') offset?: number,
-    // ) {
-    //     return this.messageService.getChannelMessages(channelId, limit, offset);
-    // }
+    @Patch(':messageId')
+    async updateMessage(
+        @Param('messageId') messageId: string,
+        @Param('guildId') guildId: string,
+        @Body(
+            new ValidationPipe({
+                transform: true,
+                transformOptions: { enableImplicitConversion: true },
+                whitelist: true,
+                groups: ['update'],
+            }),
+        )
+        body: MessageDto,
+    ) {
+        return this.messageService.updateMessage(messageId, body.content, guildId);
+    }
 
-    // @Get(':messageId')
-    // async getMessage(@Param('messageId') messageId: string) {
-    //     return this.messageService.getMessage(messageId);
-    // }
-
-    // @Patch(':messageId')
-    // async updateMessage(@Param('messageId') messageId: string, @Body() body: UpdateMessageDto) {
-    //     return this.messageService.updateMessage(messageId, body.content);
-    // }
-
-    // @Delete(':messageId')
-    // async deleteMessage(@Param('messageId') messageId: string) {
-    //     return this.messageService.deleteMessage(messageId);
-    // }
+    @Delete(':messageId')
+    async deleteMessage(@Param('messageId') messageId: string, @Param('guildId') guildId: string) {
+        return this.messageService.deleteMessage(messageId, guildId);
+    }
 }

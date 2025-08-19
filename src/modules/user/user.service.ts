@@ -1,7 +1,5 @@
-import type { Connection } from 'oracledb';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
-import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
 import { UserRepository } from './user.repository';
 import { GatewayService, SocketEvents } from '../gateway/gateway.service';
 import { AppUser, GuildUser } from '@/database/oracle/types/user';
@@ -9,7 +7,6 @@ import { AppUser, GuildUser } from '@/database/oracle/types/user';
 @Injectable()
 export class UserService {
     constructor(
-        @Inject(DATABASE_CONNECTION) private readonly oracle: Connection,
         private readonly userRepo: UserRepository,
         private readonly gateway: GatewayService,
     ) {}
@@ -24,7 +21,14 @@ export class UserService {
      * @todo Validate the `kcUser` object to ensure it contains the necessary fields before proceeding with the database operations.
      */
     async syncUsersFromKC(kcUser: IReqUser) {
-        const username = kcUser.preferred_username || kcUser.name || kcUser.email;
+        let username = kcUser.email;
+        if (kcUser.given_name && kcUser.family_name) {
+            username = `${kcUser.given_name} ${kcUser.family_name}`;
+        } else if (kcUser.name) {
+            username = kcUser.name;
+        } else if (kcUser.preferred_username) {
+            username = kcUser.preferred_username;
+        }
         const pictureUrl = kcUser.picture || kcUser.avatarUrl || null;
 
         const result = await this.userRepo.upsertUser({

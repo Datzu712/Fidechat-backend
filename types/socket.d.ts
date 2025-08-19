@@ -3,6 +3,7 @@ import type { Channel } from '@/modules/channel/channel.repository';
 import type { Guild } from '@/modules/guild/guild.repository';
 import type { Message } from '@/modules/message/message.repository';
 import type { Server, Socket } from 'socket.io';
+import type { JwtPayload } from 'jsonwebtoken';
 
 declare interface ClientToServerEvents {
     ping: () => void;
@@ -13,7 +14,7 @@ declare interface InterServerEvents {
 }
 
 declare interface SocketData {
-    user: any;
+    user: JwtPayload;
 }
 
 declare global {
@@ -25,8 +26,8 @@ declare global {
         messageCreate: (data: Message) => void;
         memberAdd: (data: { user: AppUser; memberMetadata: GuildUser }) => void;
         forceSync: () => void;
-        // messageUpdate: (message: { id: string; content: string }) => void;
-        // messageDelete: (message: { id: string }) => void;
+        messageUpdate: (data: { messageId: string; content: string }) => void;
+        messageDelete: (messageId: string) => void;
     }
     type SocketServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
     type SocketClient = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;

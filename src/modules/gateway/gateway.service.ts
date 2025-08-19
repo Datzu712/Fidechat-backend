@@ -1,5 +1,5 @@
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import jwt from 'jsonwebtoken';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
 import jwksClient, { JwksClient } from 'jwks-rsa';
 import { ConfigService } from '@nestjs/config';
 import type { OnModuleDestroy } from '@nestjs/common';
@@ -9,12 +9,10 @@ export enum SocketEvents {
     GUILD_CREATE = 'guildCreate',
     CHANNEL_CREATE = 'channelCreate',
     MESSAGE_CREATE = 'messageCreate',
+    MESSAGE_UPDATE = 'messageUpdate',
+    MESSAGE_DELETE = 'messageDelete',
     MEMBER_ADD = 'memberAdd',
     FORCE_SYNC = 'forceSync',
-    // CHANNEL_UPDATED = 'channelUpdate',
-    // CHANNEL_DELETED = 'channelDelete',
-    // MESSAGE_UPDATED = 'messageUpdate',
-    // MESSAGE_DELETED = 'messageDelete',
 }
 @WebSocketGateway({
     cors: {
@@ -70,7 +68,6 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
             token,
             this.getKey.bind(this),
             {
-                //audience: this.config.getOrThrow('KEYCLOAK_CLIENT_ID'), todo
                 issuer: `${this.config.getOrThrow('PUBLIC_KEYCLOAK_URL')}/realms/${this.config.getOrThrow('KEYCLOAK_REALM')}`,
                 complete: true,
             },
@@ -79,10 +76,11 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
                 if (err || !decoded?.payload) {
                     this.logger.error(err);
                     this.logger.debug(decoded);
+
                     socket.disconnect();
                     this.logger.error(`${socket.handshake.address} tried to connect with an invalid token`);
                 } else {
-                    const payload = decoded.payload;
+                    const payload = decoded.payload as JwtPayload;
                     const userId = payload.sub;
 
                     if (typeof userId !== 'string') {
@@ -109,13 +107,6 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
         );
     }
 
-    public emitToChannel(channelId: string, event: keyof ServerToClientEvents, data: any) {
-        if (!channelId) {
-            throw new Error('Channel ID is required');
-        }
-        this.server.to(`channel:${channelId}`).emit(event, data);
-    }
-
     public emitToUser(userId: string, event: keyof ServerToClientEvents, data: any) {
         this.server.to(userId).emit(event, data);
     }
@@ -124,9 +115,8 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
         this.server.to(userId).emit(SocketEvents.FORCE_SYNC);
     }
 
-    // todo: replace any
     public emitToUsers(userIds: string[], event: keyof ServerToClientEvents, data: any) {
-        if (userIds.length === 0) {
+        if (!userIds.length) {
             this.logger.error('User IDs are required to emit to users!');
             return;
         }

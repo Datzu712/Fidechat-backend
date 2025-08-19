@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator';
 
-export class CreateMessageDto {
+export class MessageDto {
     @IsString({ groups: ['create'] })
     @IsOptional({ groups: ['update'] })
     content!: string;

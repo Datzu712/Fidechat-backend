@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import oracledb from 'oracledb';
 import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
 import { sql } from '@/database/oracle/query-builder/sql-template';
@@ -29,16 +29,16 @@ export class UserRepository {
         defaultGuildId?: string;
     }) {
         const sqlBindings = sql`
-        BEGIN 
-            PKG_USER.SP_UPSERT_USER(
-                ${user.id}, 
-                ${user.username}, 
-                ${user.email}, 
-                ${user.avatarUrl}, 
-                ${this.DEFAULT_GUILD_ID}, 
-                :was_added_to_guild, 
-                :guild_id
-            ); 
+            BEGIN 
+                PKG_USER.SP_UPSERT_USER(
+                    ${user.id}, 
+                    ${user.username}, 
+                    ${user.email}, 
+                    ${user.avatarUrl ?? null}, 
+                    ${this.DEFAULT_GUILD_ID}, 
+                    :was_added_to_guild, 
+                    :guild_id
+                ); 
             END;
         `;
         try {
@@ -92,13 +92,14 @@ export class UserRepository {
             );
 
             const cur = result.outBinds!.p_rc;
-
             const allRows = await cur.getRows();
 
             await cur.close();
             return allRows;
         } catch (error) {
             this.logger.error(error);
+
+            throw new InternalServerErrorException('Failed to get guild users', { cause: error });
         }
     }
 }

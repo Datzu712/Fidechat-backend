@@ -1,5 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Connection } from 'oracledb';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import oracledb, { Connection } from 'oracledb';
 import { v4 } from 'uuid';
 import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
 import { sql } from '@/database/oracle/query-builder/sql-template';
@@ -10,6 +10,14 @@ export interface Message {
     authorId: string;
     channelId: string;
     createdAt: Date;
+}
+
+export interface RefMessageDatabase {
+    ID: string;
+    CONTENT: string;
+    AUTHOR_ID: string;
+    CHANNEL_ID: string;
+    CREATED_AT: Date;
 }
 
 export type MessageCreationAttributes = Omit<Message, 'id' | 'createdAt'>;
@@ -38,57 +46,66 @@ export class MessageRepository {
         }
     }
 
-    // async getChannelMessages(channelId: string, limit = 50, offset = 0) {
-    //     try {
-    //         const result = await this.db.execute(
-    //             `DECLARE
-    //                 v_cursor SYS_REFCURSOR;
-    //             BEGIN
-    //                 PKG_MESSAGES.GET_CHANNEL_MESSAGES(:channelId, :limit, :offset, v_cursor);
-    //                 :cursor := v_cursor;
-    //             END;`,
-    //             { channelId, limit, offset },
-    //         );
+    async getMessage(id: string): Promise<UppercaseKeys<RefMessageDatabase> | null> {
+        try {
+            const result = await this.db.execute<{ cursor: oracledb.ResultSet<UppercaseKeys<RefMessageDatabase>> }>(
+                `DECLARE
+                    v_cursor SYS_REFCURSOR;
+                BEGIN
+                    PKG_MESSAGES.GET_MESSAGE(:id, :cursor);
+                END;`,
+                {
+                    id,
+                    cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+                },
+                { outFormat: oracledb.OUT_FORMAT_OBJECT },
+            );
 
-    //         if (!result.rows) {
-    //             return [];
-    //         }
+            const cursor = result.outBinds?.cursor;
+            const rows = await cursor?.getRows(1);
+            await cursor?.close();
 
-    //         return result.rows as Message[];
-    //     } catch (error) {
-    //         throw new Error(`Failed to get channel messages`, { cause: error });
-    //     }
-    // }
+            if (!rows?.length) {
+                return null;
+            }
 
-    // async updateMessage(id: string, content: string) {
-    //     try {
-    //         await this.db.execute(
-    //             `BEGIN
-    //                 PKG_MESSAGES.UPDATE_MESSAGE(:id, :content);
-    //             END;`,
-    //             { id, content },
-    //             { autoCommit: true },
-    //         );
+            return rows[0];
+        } catch (error) {
+            this.logger.error(error);
+            throw new InternalServerErrorException(`Failed to get message`, { cause: error });
+        }
+    }
 
-    //         return { success: true };
-    //     } catch (error) {
-    //         throw new Error(`Failed to update message`, { cause: error });
-    //     }
-    // }
+    async updateMessage(id: string, content: string) {
+        try {
+            await this.db.execute(
+                ...sql`
+                    BEGIN
+                        PKG_MESSAGES.UPDATE_MESSAGE(${id}, ${content});
+                    END;
+                `,
+                { autoCommit: true },
+            );
 
-    // async deleteMessage(id: string) {
-    //     try {
-    //         await this.db.execute(
-    //             `BEGIN
-    //                 PKG_MESSAGES.DELETE_MESSAGE(:id);
-    //             END;`,
-    //             { id },
-    //             { autoCommit: true },
-    //         );
+            return { success: true };
+        } catch (error) {
+            throw new Error(`Failed to update message`, { cause: error });
+        }
+    }
 
-    //         return { success: true };
-    //     } catch (error) {
-    //         throw new Error(`Failed to delete message`, { cause: error });
-    //     }
-    // }
+    async deleteMessage(id: string) {
+        try {
+            await this.db.execute(
+                `BEGIN
+                    PKG_MESSAGES.DELETE_MESSAGE(:id);
+                END;`,
+                { id },
+                { autoCommit: true },
+            );
+
+            return { success: true };
+        } catch (error) {
+            throw new Error(`Failed to delete message`, { cause: error });
+        }
+    }
 }

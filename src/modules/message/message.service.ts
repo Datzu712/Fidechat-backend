@@ -3,6 +3,7 @@ import { type MessageCreationAttributes, MessageRepository } from './message.rep
 import { GatewayService, SocketEvents } from '../gateway/gateway.service';
 import { ChannelRepository } from '../channel/channel.repository';
 import { UserRepository } from '../user/user.repository';
+import { channel } from 'node:diagnostics_channel';
 
 @Injectable()
 export class MessageService {
@@ -41,54 +42,54 @@ export class MessageService {
         }
     }
 
-    // async getMessage(id: string) {
-    //     return this.messageRepository.getMessage(id);
-    // }
+    async getMessage(id: string) {
+        return this.messageRepository.getMessage(id);
+    }
 
-    // async getChannelMessages(channelId: string, limit?: number, offset?: number) {
-    //     try {
-    //         return await this.messageRepository.getChannelMessages(channelId, limit, offset);
-    //     } catch (error) {
-    //         if (!(error instanceof HttpException)) {
-    //             throw new InternalServerErrorException('Failed to get channel messages', { cause: error });
-    //         }
-    //         throw error;
-    //     }
-    // }
+    async updateMessage(id: string, content: string, guildId: string) {
+        try {
+            const message = await this.getMessage(id);
+            if (!message) throw new NotFoundException('Message not found');
 
-    // async updateMessage(id: string, content: string) {
-    //     try {
-    //         const message = await this.getMessage(id);
-    //         const result = await this.messageRepository.updateMessage(id, content);
+            const result = await this.messageRepository.updateMessage(id, content);
 
-    //         if (result.success) {
-    //             this.gateway.emitToChannel(message.channelId, 'messageUpdate', { id, content });
-    //         }
+            if (result.success) {
+                const guildMembers = (await this.userRepository.getGuildUsers(guildId))?.map((user) => user.ID) || [];
+                this.gateway.emitToUsers(guildMembers, SocketEvents.MESSAGE_UPDATE, { id, content });
+            }
 
-    //         return result;
-    //     } catch (error) {
-    //         if (!(error instanceof HttpException)) {
-    //             throw new InternalServerErrorException('Failed to update message', { cause: error });
-    //         }
-    //         throw error;
-    //     }
-    // }
+            return result;
+        } catch (error) {
+            if (!(error instanceof HttpException)) {
+                throw new InternalServerErrorException('Failed to update message', { cause: error });
+            }
+            throw error;
+        }
+    }
 
-    // async deleteMessage(id: string) {
-    //     try {
-    //         const message = await this.getMessage(id);
-    //         const result = await this.messageRepository.deleteMessage(id);
+    async deleteMessage(id: string, guildId: string) {
+        try {
+            const message = await this.getMessage(id);
+            if (!message) throw new NotFoundException('Message not found');
 
-    //         if (result.success) {
-    //             this.gateway.emitToChannel(message.channelId, 'messageDelete', { id });
-    //         }
+            console.log(message);
 
-    //         return result;
-    //     } catch (error) {
-    //         if (!(error instanceof HttpException)) {
-    //             throw new InternalServerErrorException('Failed to delete message', { cause: error });
-    //         }
-    //         throw error;
-    //     }
-    // }
+            const result = await this.messageRepository.deleteMessage(id);
+
+            if (result.success) {
+                const guildMembers = (await this.userRepository.getGuildUsers(guildId))?.map((user) => user.ID) || [];
+                this.gateway.emitToUsers(guildMembers, SocketEvents.MESSAGE_DELETE, {
+                    id,
+                    channelId: message.CHANNEL_ID,
+                });
+            }
+
+            return result;
+        } catch (error) {
+            if (!(error instanceof HttpException)) {
+                throw new InternalServerErrorException('Failed to delete message', { cause: error });
+            }
+            throw error;
+        }
+    }
 }

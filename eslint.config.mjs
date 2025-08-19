@@ -64,7 +64,7 @@ export default tseslint.config(
             ],
             'no-undef': 'off',
             'no-console': 'off',
-            '@typescript-eslint/no-magic-numbers': 'warn',
+            '@typescript-eslint/no-magic-numbers': 'off',
             'no-implicit-globals': 'off',
             '@typescript-eslint/prefer-destructuring': 'off',
             '@typescript-eslint/class-methods-use-this': 'off',

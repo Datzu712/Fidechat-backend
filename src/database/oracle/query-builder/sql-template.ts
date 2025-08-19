@@ -1,20 +1,14 @@
-/* eslint-disable eslint-comments/require-description -- todo */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-magic-numbers  */
+import type { BindParameters } from 'oracledb';
+
 // Adapted on https://github.com/oracle/node-oracledb/issues/699#issuecomment-524009129
 export type SqlValue = string | number | Date | boolean | null;
+export type SqlParameter = SqlValue | SqlValue[];
 
-export function sql(queryParts: TemplateStringsArray, ...parameters: any[]): [string, any[]] {
+export function sql(queryParts: TemplateStringsArray, ...parameters: SqlParameter[]): [string, BindParameters] {
     if (queryParts.length !== parameters.length + 1) {
         throw new Error(`Invalid number of parameters: expected ${queryParts.length - 1}, got ${parameters.length}`);
     }
 
-    // return {
-    //     query: queryParts
-    //         .map((part, index) => (index < parameters.length ? `${part}${parameterIndexes(parameters, index)}` : part))
-    //         .join(''),
-    //     parameters: parameters.flat(),
-    // };
     return [
         queryParts
             .map((part, index) => (index < parameters.length ? `${part}${parameterIndexes(parameters, index)}` : part))
@@ -23,15 +17,16 @@ export function sql(queryParts: TemplateStringsArray, ...parameters: any[]): [st
     ];
 }
 
-function parameterIndexes(currentParameters: any[], index: number): string {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    const newIndex = currentParameters.slice(0, index).reduce((p, c) => p + (Array.isArray(c) ? c.length : 1), 0);
+function parameterIndexes(currentParameters: SqlParameter[], index: number): string {
+    const newIndex = currentParameters
+        .slice(0, index)
+        .reduce<number>((p, c) => p + (Array.isArray(c) ? c.length : 1), 0);
     const parameter = currentParameters[index];
 
     if (Array.isArray(parameter)) {
         const indexes = new Array<number>(parameter.length).fill(index).map((e, i) => e + i);
         return ':' + indexes.join(', :');
     } else {
-        return ':' + newIndex;
+        return ':' + String(newIndex);
     }
 }

@@ -27,7 +27,7 @@ export class ChannelRepository {
             await this.db.execute(
                 ...sql`
                 BEGIN
-                    PKG_CHANNEL.CREATE_CHANNEL(${channelId}, ${dto.name}, ${dto.description}, ${dto.position || 0}, ${guildId});
+                    PKG_CHANNEL.CREATE_CHANNEL(${channelId}, ${dto.name}, ${dto.description || null}, ${dto.position || 0}, ${guildId});
                 END;
             `,
                 { autoCommit: true },
