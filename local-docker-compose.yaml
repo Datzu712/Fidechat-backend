@@ -29,7 +29,7 @@ services:
       timeout: 3s
       retries: 3
     volumes:
-      - pg_keycloak_data:/var/lib/postgresql/data
+      - pg_keycloak_data_local:/var/lib/postgresql/data
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   keycloak:
