@@ -5,6 +5,9 @@ declare interface IEnvironmentVariables {
     SOCKET_NAMESPACE?: string;
     CORS_ORIGIN: string;
 
+    // fidechat config
+    DEFAULT_GUILD_ID?: string;
+
     // Oracle
     ORACLE_PWD: string;
     ORACLE_PORT: number;

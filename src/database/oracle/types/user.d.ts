@@ -5,3 +5,8 @@ export interface AppUser {
     isBot: boolean;
     avatarUrl?: string;
 }
+
+export interface GuildUser {
+    guildId: string;
+    userId: string;
+}

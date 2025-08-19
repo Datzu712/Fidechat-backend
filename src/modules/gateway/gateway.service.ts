@@ -8,9 +8,11 @@ import { Logger } from '@/common/logger';
 export enum SocketEvents {
     GUILD_CREATE = 'guildCreate',
     CHANNEL_CREATE = 'channelCreate',
+    MESSAGE_CREATE = 'messageCreate',
+    MEMBER_ADD = 'memberAdd',
+    FORCE_SYNC = 'forceSync',
     // CHANNEL_UPDATED = 'channelUpdate',
     // CHANNEL_DELETED = 'channelDelete',
-    MESSAGE_CREATE = 'messageCreate',
     // MESSAGE_UPDATED = 'messageUpdate',
     // MESSAGE_DELETED = 'messageDelete',
 }
@@ -51,7 +53,6 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
     }
 
     public handleConnection(socket: SocketClient) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- type shii
         let token: string | undefined = socket.handshake.auth.token;
         if (this.config.get('NODE_ENV') === 'development' && !token) {
             // In development mode, we allow a token to be passed through header "access-token" (for postman)
@@ -118,6 +119,11 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
         this.server.to(userId).emit(event, data);
     }
 
+    public emitForceSync(userId: string) {
+        this.server.to(userId).emit(SocketEvents.FORCE_SYNC);
+    }
+
+    // todo: replace any
     public emitToUsers(userIds: string[], event: keyof ServerToClientEvents, data: any) {
         if (userIds.length === 0) {
             this.logger.error('User IDs are required to emit to users!');

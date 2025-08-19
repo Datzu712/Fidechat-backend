@@ -3,47 +3,69 @@ import oracledb from 'oracledb';
 import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
 import { sql } from '@/database/oracle/query-builder/sql-template';
 import { AppUser } from '@/database/oracle/types/user';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserRepository {
     private readonly logger = new Logger(UserRepository.name);
+    public DEFAULT_GUILD_ID!: string;
 
-    constructor(@Inject(DATABASE_CONNECTION) private readonly oracle: oracledb.Connection) {}
+    constructor(
+        @Inject(DATABASE_CONNECTION) private readonly oracle: oracledb.Connection,
+        private readonly config: ConfigService<IEnvironmentVariables>,
+    ) {
+        this.DEFAULT_GUILD_ID = this.config.getOrThrow('DEFAULT_GUILD_ID');
+    }
 
     async findById(id: string) {
         const result = await this.oracle.execute(...sql`SELECT * FROM APP_USER WHERE id = ${id}`);
         return result.rows?.[0];
     }
-
-    // todo change update and insert to upsert
-    async update(id: string, username: string, email: string, avatarUrl: string | null = null) {
-        return this.oracle.execute(
-            ...sql`
-                UPDATE APP_USER
-                    SET username = ${username}, email = ${email}, AVATAR_URL = ${avatarUrl}
-                WHERE id = ${id}
-            `,
-            { autoCommit: true },
-        );
-    }
-
-    async insert(id: string, username: string, email: string, avatarUrl: string | null = null) {
-        if (avatarUrl) {
-            return this.oracle.execute(
-                ...sql`
-                INSERT INTO APP_USER (id, username, email, avatar_url)
-                VALUES (${id}, ${username}, ${email}, ${avatarUrl})
-            `,
-                { autoCommit: true },
+    async upsertUser(user: {
+        id: string;
+        username: string;
+        email: string;
+        avatarUrl?: string | null;
+        defaultGuildId?: string;
+    }) {
+        const sqlBindings = sql`
+        BEGIN 
+            PKG_USER.SP_UPSERT_USER(
+                ${user.id}, 
+                ${user.username}, 
+                ${user.email}, 
+                ${user.avatarUrl}, 
+                ${this.DEFAULT_GUILD_ID}, 
+                :was_added_to_guild, 
+                :guild_id
+            ); 
+            END;
+        `;
+        try {
+            const result = await this.oracle.execute<{
+                was_added_to_guild: number;
+                guild_id: string | null;
+            }>(
+                sqlBindings[0],
+                Object.assign(
+                    {
+                        was_added_to_guild: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+                        guild_id: { dir: oracledb.BIND_OUT, type: oracledb.STRING },
+                    },
+                    sqlBindings[1],
+                ),
+                {
+                    autoCommit: true,
+                },
             );
-        } else {
-            return this.oracle.execute(
-                ...sql`
-                INSERT INTO APP_USER (id, username, email)
-                VALUES (${id}, ${username}, ${email})
-            `,
-                { autoCommit: true },
-            );
+
+            return {
+                wasAddedToGuild: result.outBinds!.was_added_to_guild === 1,
+                guildId: result.outBinds!.guild_id,
+            };
+        } catch (error) {
+            this.logger.error('Error in upsertUser:', error);
+            throw error;
         }
     }
 
