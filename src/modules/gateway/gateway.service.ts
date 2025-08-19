@@ -2,7 +2,7 @@ import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketSe
 import jwt, { type JwtPayload } from 'jsonwebtoken';
 import jwksClient, { JwksClient } from 'jwks-rsa';
 import { ConfigService } from '@nestjs/config';
-import type { OnModuleDestroy } from '@nestjs/common';
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Logger } from '@/common/logger';
 
 export enum SocketEvents {
@@ -13,7 +13,22 @@ export enum SocketEvents {
     MESSAGE_DELETE = 'messageDelete',
     MEMBER_ADD = 'memberAdd',
     FORCE_SYNC = 'forceSync',
+    USER_STATUS_UPDATE = 'userStatusUpdate',
+    UPDATE_CURRENT_STATUS = 'updateCurrentClientStatus', // client -> server
 }
+export type SocketUserStatus = 'online' | 'idle' | 'dnd';
+export enum SocketUserStatusEnum {
+    ONLINE = 'online',
+    IDLE = 'idle',
+    DND = 'dnd',
+    OFFLINE = 'offline',
+}
+
+export type SocketUser = {
+    userId: string;
+    status: SocketUserStatus;
+};
+
 @WebSocketGateway({
     cors: {
         origin: process.env.CORS_ORIGIN,
@@ -24,8 +39,25 @@ export enum SocketEvents {
     transports: ['websocket'],
     allowUpgrades: true,
 })
-export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnGatewayDisconnect {
+export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnGatewayDisconnect, OnModuleInit {
     private readonly logger = new Logger('GatewayService');
+    readonly #activeUsers = new Map<string, SocketUserStatus>();
+
+    /**
+     * Retrieves a list of active users and their statuses.
+     * Converts the internal map of active users into an array of objects,
+     * where each object contains the user ID and their corresponding status.
+     *
+     * @returns An array of objects, each containing:
+     * - `userId`: The unique identifier of the user.
+     * - `status`: The current status of the user.
+     */
+    get activeUsers(): SocketUser[] {
+        return Array.from(this.#activeUsers.entries()).map(([userId, status]) => ({
+            userId,
+            status,
+        }));
+    }
 
     @WebSocketServer()
     public server!: SocketServer;
@@ -98,6 +130,9 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
                     void socket.join(userId);
                     socket.data.user = payload;
 
+                    this.#activeUsers.set(userId, SocketUserStatusEnum.ONLINE);
+                    this.server.emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
+
                     this.logger.debug(
                         `Socket ${socket.id} connected with user data: ${JSON.stringify(socket.data.user)} (${socket.handshake.address} - socket: ${socket.id})`,
                     );
@@ -129,10 +164,35 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
     }
     public handleDisconnect(socket: SocketClient) {
         this.logger.debug(`Socket ${socket.id} disconnected.`);
+        if (socket.data.user) {
+            const userId = (socket.data.user as JwtPayload).sub;
+            if (typeof userId === 'string' && this.#activeUsers.has(userId)) {
+                this.#activeUsers.delete(userId);
+                this.server.emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
+            }
+        }
     }
 
     public onModuleDestroy() {
         void this.server.close();
         this.logger.log('WebSocket server closed...');
+    }
+
+    public handleUserStatusUpdate(socket: SocketClient, status: SocketUserStatus) {
+        if (this.#activeUsers.has(socket.data.user?.sub!)) {
+            this.#activeUsers.set(socket.data.user.sub!, status);
+
+            this.server.emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
+        }
+    }
+
+    public onModuleInit() {
+        this.server.on('connection', (socket: SocketClient) => {
+            socket.on(SocketEvents.UPDATE_CURRENT_STATUS, (status: SocketUserStatus) => {
+                this.logger.log(`User ${socket.id} updated status to: ${status}`);
+
+                this.handleUserStatusUpdate(socket, status);
+            });
+        });
     }
 }

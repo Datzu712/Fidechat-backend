@@ -7,6 +7,7 @@ import type { JwtPayload } from 'jsonwebtoken';
 
 declare interface ClientToServerEvents {
     ping: () => void;
+    updateCurrentClientStatus: (status: SocketUserStatus) => void;
 }
 
 declare interface InterServerEvents {
@@ -28,6 +29,7 @@ declare global {
         forceSync: () => void;
         messageUpdate: (data: { messageId: string; content: string }) => void;
         messageDelete: (messageId: string) => void;
+        userStatusUpdate: (data: { userId: string; status: SocketUserStatus }[]) => void;
     }
     type SocketServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
     type SocketClient = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;

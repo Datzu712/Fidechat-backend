@@ -2,10 +2,6 @@ import { AuthenticatedUser } from 'nest-keycloak-connect';
 import { Controller, Get } from '@nestjs/common';
 import { SyncService } from './sync.service';
 
-/**
- * Controller responsible for handling synchronization-related operations
- * for the current authenticated user.
- */
 @Controller({
     version: '1',
     path: '/users/@me/sync',
