@@ -3,6 +3,7 @@ import { Message, type MessageCreationAttributes, MessageRepository } from './me
 import { GatewayService, SocketEvents } from '../gateway/gateway.service';
 import { ChannelRepository } from '../channel/channel.repository';
 import { UserRepository } from '../user/user.repository';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class MessageService {
@@ -22,10 +23,13 @@ export class MessageService {
         }
 
         try {
-            const createdAt = new Date();
+            const createAt = new Date();
+            const ms = dayjs(createAt).format('YYYY-MM-DDTHH:mm:ss.SSS');
+            const createdAtStr = `${ms}000`;
+
             const result = await this.messageRepository.createMessage({
                 ...data,
-                createdAt,
+                createdAt: createAt,
             });
             const guildMembers =
                 (await this.userRepository.getGuildUsers(channel.guildId))?.map((user) => user.ID) || [];
@@ -33,7 +37,7 @@ export class MessageService {
             this.gateway.emitToUsers(guildMembers, SocketEvents.MESSAGE_CREATE, {
                 id: result.id,
                 ...data,
-                createdAt: createdAt.toISOString(),
+                createdAt: createdAtStr,
             } satisfies Omit<Message, 'createdAt'> & { createdAt: string });
 
             return result;

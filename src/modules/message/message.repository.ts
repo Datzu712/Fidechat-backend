@@ -29,7 +29,6 @@ export class MessageRepository {
     constructor(@Inject(DATABASE_CONNECTION) private readonly db: Connection) {}
 
     async createMessage({ channelId, authorId, content, createdAt }: MessageCreationAttributes) {
-        console.log(createdAt);
         try {
             const id = v4();
             await this.db.execute(
