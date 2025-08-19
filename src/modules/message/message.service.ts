@@ -33,8 +33,8 @@ export class MessageService {
             this.gateway.emitToUsers(guildMembers, SocketEvents.MESSAGE_CREATE, {
                 id: result.id,
                 ...data,
-                createdAt,
-            } satisfies Message);
+                createdAt: createdAt.toISOString(),
+            } satisfies Omit<Message, 'createdAt'> & { createdAt: string });
 
             return result;
         } catch (error) {
