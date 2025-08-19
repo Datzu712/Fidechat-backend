@@ -74,6 +74,9 @@ export default tseslint.config(
             '@typescript-eslint/no-unsafe-assignment': 'off',
             '@typescript-eslint/no-unsafe-type-assertion': 'off',
             '@typescript-eslint/no-unsafe-return': 'off',
+            '@typescript-eslint/max-params': 'off',
+            '@typescript-eslint/init-declarations': 'off',
+            '@typescript-eslint/restrict-template-expressions': 'off',
         },
     },
 );

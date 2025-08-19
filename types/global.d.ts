@@ -21,6 +21,9 @@ declare interface IEnvironmentVariables {
     KEYCLOAK_CLIENT_ID: string;
     KEYCLOAK_CLIENT_SECRET: string;
     PUBLIC_KEYCLOAK_URL: string; // Public URL for Keycloak
+
+    // chat yipiti
+    OPENAI_API_KEY: string;
 }
 
 declare type UppercaseKeys<T> = {

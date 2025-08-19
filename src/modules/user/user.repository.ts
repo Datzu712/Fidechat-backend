@@ -18,7 +18,7 @@ export class UserRepository {
     }
 
     async findById(id: string) {
-        const result = await this.oracle.execute(...sql`SELECT * FROM APP_USER WHERE id = ${id}`);
+        const result = await this.oracle.execute<AppUser>(...sql`SELECT * FROM APP_USER WHERE id = ${id}`);
         return result.rows?.[0];
     }
     async upsertUser(user: {

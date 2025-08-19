@@ -16,6 +16,7 @@ import { UserModule } from './user/user.module';
 import { GuildModule } from './guild/guild.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { MessageModule } from './message/message.module';
+import { AIModule } from './ai/ai.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { MessageModule } from './message/message.module';
         GatewayModule,
         UserModule,
         MessageModule,
+        AIModule,
     ],
     providers: [
         {

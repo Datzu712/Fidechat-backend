@@ -45,7 +45,8 @@ CREATE OR REPLACE PACKAGE BODY pkg_sync_data AS
                                JSON_OBJECT(
                                        'id' VALUE id,
                                        'username' VALUE username,
-                                       'avatarUrl' VALUE AVATAR_URL
+                                       'avatarUrl' VALUE AVATAR_URL,
+                                       'isBot' VALUE IS_BOT
                                ) RETURNING CLOB
                        ), TO_CLOB('[]'))
         INTO v_result

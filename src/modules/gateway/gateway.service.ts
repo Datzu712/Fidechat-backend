@@ -4,6 +4,7 @@ import jwksClient, { JwksClient } from 'jwks-rsa';
 import { ConfigService } from '@nestjs/config';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Logger } from '@/common/logger';
+import { IAUserModels } from '../ai/ai-command.service';
 
 export enum SocketEvents {
     GUILD_CREATE = 'guildCreate',
@@ -24,12 +25,12 @@ export enum SocketUserStatusEnum {
     OFFLINE = 'offline',
 }
 
-export type SocketUserMetadata = {
+export interface SocketUserMetadata {
     userId: string;
     status: SocketUserStatus;
     typingInChannel?: string;
     isTyping: boolean;
-};
+}
 
 @WebSocketGateway({
     cors: {
@@ -70,6 +71,13 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
         this.client = jwksClient({
             jwksUri: `${this.config.getOrThrow('PUBLIC_KEYCLOAK_URL')}/realms/${this.config.getOrThrow('KEYCLOAK_REALM')}/protocol/openid-connect/certs`,
         });
+
+        for (const user of IAUserModels) {
+            this.#activeUsers.set(user.id, {
+                status: SocketUserStatusEnum.ONLINE,
+                isTyping: false,
+            });
+        }
     }
 
     private getKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) {
@@ -167,10 +175,11 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
             this.server.to(userId).emit(event, data);
         });
     }
+
     public handleDisconnect(socket: SocketClient) {
         this.logger.debug(`Socket ${socket.id} disconnected.`);
         if (socket.data.user) {
-            const userId = (socket.data.user as JwtPayload).sub;
+            const userId = socket.data.user.sub;
             if (typeof userId === 'string' && this.#activeUsers.has(userId)) {
                 this.#activeUsers.delete(userId);
                 this.server.emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
@@ -184,9 +193,14 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
     }
 
     public handleUserStatusUpdate(socket: SocketClient, metadata: SocketUserMetadata) {
-        if (this.#activeUsers.has(socket.data.user?.sub!)) {
-            const currentData = this.#activeUsers.get(socket.data.user.sub!)!;
-            this.#activeUsers.set(socket.data.user.sub!, Object.assign(currentData, metadata));
+        if (!socket.data.user) {
+            socket.disconnect();
+            return;
+        }
+
+        if (socket.data.user.sub && this.#activeUsers.has(socket.data.user.sub)) {
+            const currentData = this.#activeUsers.get(socket.data.user.sub)!;
+            this.#activeUsers.set(socket.data.user.sub, Object.assign(currentData, metadata));
 
             this.server.emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
         }
@@ -200,5 +214,38 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
                 this.handleUserStatusUpdate(socket, data);
             });
         });
+    }
+
+    public startTypingIA(modelId: string, channelId: string) {
+        const user = IAUserModels.find((user) => user.id === modelId);
+        if (!user) {
+            this.logger.error(`IA user with ID ${modelId} not found`);
+            return;
+        }
+
+        this.#activeUsers.set(user.id, {
+            status: SocketUserStatusEnum.ONLINE,
+            isTyping: true,
+            typingInChannel: channelId,
+        });
+
+        this.server.emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
+        this.server.to(channelId).emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
+    }
+
+    public stopTypingIA(modelId: string) {
+        const user = IAUserModels.find((user) => user.id === modelId);
+        if (!user) {
+            this.logger.error(`IA user with ID ${modelId} not found`);
+            return;
+        }
+
+        this.#activeUsers.set(user.id, {
+            status: SocketUserStatusEnum.ONLINE,
+            isTyping: false,
+            typingInChannel: undefined,
+        });
+
+        this.server.emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
     }
 }
