@@ -20,7 +20,7 @@ export interface RefMessageDatabase {
     CREATED_AT: Date;
 }
 
-export type MessageCreationAttributes = Omit<Message, 'id' | 'createdAt'>;
+export type MessageCreationAttributes = Omit<Message, 'id'>;
 
 @Injectable()
 export class MessageRepository {
@@ -28,13 +28,13 @@ export class MessageRepository {
 
     constructor(@Inject(DATABASE_CONNECTION) private readonly db: Connection) {}
 
-    async createMessage({ channelId, authorId, content }: MessageCreationAttributes) {
-        console.log({ channelId, authorId, content });
+    async createMessage({ channelId, authorId, content, createdAt }: MessageCreationAttributes) {
+        console.log(createdAt);
         try {
             const id = v4();
             await this.db.execute(
                 ...sql`BEGIN
-                    PKG_MESSAGES.CREATE_MESSAGE(${id}, ${content}, ${authorId}, ${channelId});
+                    PKG_MESSAGES.CREATE_MESSAGE(${id}, ${content}, ${authorId}, ${channelId}, ${createdAt});
                 END;`,
                 { autoCommit: true },
             );

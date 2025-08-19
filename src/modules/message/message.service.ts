@@ -1,9 +1,8 @@
 import { HttpException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
-import { type MessageCreationAttributes, MessageRepository } from './message.repository';
+import { Message, type MessageCreationAttributes, MessageRepository } from './message.repository';
 import { GatewayService, SocketEvents } from '../gateway/gateway.service';
 import { ChannelRepository } from '../channel/channel.repository';
 import { UserRepository } from '../user/user.repository';
-import { channel } from 'node:diagnostics_channel';
 
 @Injectable()
 export class MessageService {
@@ -23,15 +22,19 @@ export class MessageService {
         }
 
         try {
-            const result = await this.messageRepository.createMessage(data);
+            const createdAt = new Date();
+            const result = await this.messageRepository.createMessage({
+                ...data,
+                createdAt,
+            });
             const guildMembers =
                 (await this.userRepository.getGuildUsers(channel.guildId))?.map((user) => user.ID) || [];
 
             this.gateway.emitToUsers(guildMembers, SocketEvents.MESSAGE_CREATE, {
                 id: result.id,
                 ...data,
-                createdAt: new Date(),
-            });
+                createdAt,
+            } satisfies Message);
 
             return result;
         } catch (error) {
