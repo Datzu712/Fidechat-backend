@@ -24,9 +24,11 @@ export enum SocketUserStatusEnum {
     OFFLINE = 'offline',
 }
 
-export type SocketUser = {
+export type SocketUserMetadata = {
     userId: string;
     status: SocketUserStatus;
+    typingInChannel?: string;
+    isTyping: boolean;
 };
 
 @WebSocketGateway({
@@ -41,7 +43,7 @@ export type SocketUser = {
 })
 export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnGatewayDisconnect, OnModuleInit {
     private readonly logger = new Logger('GatewayService');
-    readonly #activeUsers = new Map<string, SocketUserStatus>();
+    readonly #activeUsers = new Map<string, Omit<SocketUserMetadata, 'userId'>>();
 
     /**
      * Retrieves a list of active users and their statuses.
@@ -52,10 +54,10 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
      * - `userId`: The unique identifier of the user.
      * - `status`: The current status of the user.
      */
-    get activeUsers(): SocketUser[] {
-        return Array.from(this.#activeUsers.entries()).map(([userId, status]) => ({
+    get activeUsers(): SocketUserMetadata[] {
+        return Array.from(this.#activeUsers.entries()).map(([userId, data]) => ({
             userId,
-            status,
+            ...data,
         }));
     }
 
@@ -130,7 +132,10 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
                     void socket.join(userId);
                     socket.data.user = payload;
 
-                    this.#activeUsers.set(userId, SocketUserStatusEnum.ONLINE);
+                    this.#activeUsers.set(userId, {
+                        status: SocketUserStatusEnum.ONLINE,
+                        isTyping: false,
+                    });
                     this.server.emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
 
                     this.logger.debug(
@@ -178,9 +183,10 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
         this.logger.log('WebSocket server closed...');
     }
 
-    public handleUserStatusUpdate(socket: SocketClient, status: SocketUserStatus) {
+    public handleUserStatusUpdate(socket: SocketClient, metadata: SocketUserMetadata) {
         if (this.#activeUsers.has(socket.data.user?.sub!)) {
-            this.#activeUsers.set(socket.data.user.sub!, status);
+            const currentData = this.#activeUsers.get(socket.data.user.sub!)!;
+            this.#activeUsers.set(socket.data.user.sub!, Object.assign(currentData, metadata));
 
             this.server.emit(SocketEvents.USER_STATUS_UPDATE, this.activeUsers);
         }
@@ -188,10 +194,10 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
 
     public onModuleInit() {
         this.server.on('connection', (socket: SocketClient) => {
-            socket.on(SocketEvents.UPDATE_CURRENT_STATUS, (status: SocketUserStatus) => {
-                this.logger.log(`User ${socket.id} updated status to: ${status}`);
+            socket.on(SocketEvents.UPDATE_CURRENT_STATUS, (data: SocketUserMetadata) => {
+                this.logger.debug(`User ${socket.id} updated status to: ${JSON.stringify(data)}`);
 
-                this.handleUserStatusUpdate(socket, status);
+                this.handleUserStatusUpdate(socket, data);
             });
         });
     }
