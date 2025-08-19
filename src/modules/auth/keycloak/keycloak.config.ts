@@ -12,7 +12,7 @@ export class KeycloakConfig implements KeycloakConnectOptionsFactory {
 
     createKeycloakConnectOptions(): KeycloakConnectOptions {
         return {
-            authServerUrl: this.config.getOrThrow('KEYCLOAK_URL'),
+            authServerUrl: this.config.getOrThrow('PUBLIC_KEYCLOAK_URL'),
             realm: this.config.getOrThrow('KEYCLOAK_REALM'),
             clientId: this.config.getOrThrow('KEYCLOAK_CLIENT_ID'),
             secret: this.config.getOrThrow('KEYCLOAK_CLIENT_SECRET'),

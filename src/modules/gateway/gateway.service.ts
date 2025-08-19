@@ -69,7 +69,7 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
             this.getKey.bind(this),
             {
                 //audience: this.config.getOrThrow('KEYCLOAK_CLIENT_ID'), todo
-                issuer: `${this.config.getOrThrow('KEYCLOAK_URL')}/realms/${this.config.getOrThrow('KEYCLOAK_REALM')}`,
+                issuer: `${this.config.getOrThrow('PUBLIC_KEYCLOAK_URL')}/realms/${this.config.getOrThrow('KEYCLOAK_REALM')}`,
                 complete: true,
             },
             (err: jwt.VerifyErrors | null, decoded: jwt.Jwt | undefined) => {

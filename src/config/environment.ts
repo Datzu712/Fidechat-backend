@@ -51,4 +51,7 @@ export class EnvironmentVariables implements IEnvironmentVariables {
     @IsString()
     @IsOptional()
     SOCKET_NAMESPACE?: string | undefined;
+
+    @IsString()
+    PUBLIC_KEYCLOAK_URL!: string;
 }

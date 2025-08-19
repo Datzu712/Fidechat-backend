@@ -17,6 +17,7 @@ declare interface IEnvironmentVariables {
     KEYCLOAK_REALM: string;
     KEYCLOAK_CLIENT_ID: string;
     KEYCLOAK_CLIENT_SECRET: string;
+    PUBLIC_KEYCLOAK_URL: string; // Public URL for Keycloak
 }
 
 declare type UppercaseKeys<T> = {
