@@ -237,7 +237,7 @@ export class AICommandService implements OnModuleInit {
 
             return {
                 success: true,
-                response: `🎤 **Chayanne:** ${response.trim()}`,
+                response: response.trim(),
                 model: `chayanne-${completion.model}`,
                 usage: {
                     promptTokens: completion.usage?.prompt_tokens || 0,
