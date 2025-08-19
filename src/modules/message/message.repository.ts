@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Connection } from 'oracledb';
 import { v4 } from 'uuid';
 import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
+import { sql } from '@/database/oracle/query-builder/sql-template';
 
 export interface Message {
     id: string;
@@ -9,10 +10,9 @@ export interface Message {
     authorId: string;
     channelId: string;
     createdAt: Date;
-    updatedAt: Date;
-    authorUsername?: string;
-    authorAvatar?: string;
 }
+
+export type MessageCreationAttributes = Omit<Message, 'id' | 'createdAt'>;
 
 @Injectable()
 export class MessageRepository {
@@ -20,19 +20,20 @@ export class MessageRepository {
 
     constructor(@Inject(DATABASE_CONNECTION) private readonly db: Connection) {}
 
-    async createMessage(channelId: string, authorId: string, content: string) {
+    async createMessage({ channelId, authorId, content }: MessageCreationAttributes) {
+        console.log({ channelId, authorId, content });
         try {
             const id = v4();
             await this.db.execute(
-                `BEGIN
-                    PKG_MESSAGES.CREATE_MESSAGE(:id, :content, :authorId, :channelId);
+                ...sql`BEGIN
+                    PKG_MESSAGES.CREATE_MESSAGE(${id}, ${content}, ${authorId}, ${channelId});
                 END;`,
-                { id, content, authorId, channelId },
                 { autoCommit: true },
             );
 
             return { id };
         } catch (error) {
+            this.logger.error(error);
             throw new Error(`Failed to create message`, { cause: error });
         }
     }

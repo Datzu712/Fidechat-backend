@@ -1,23 +1,34 @@
-import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { MessageRepository } from './message.repository';
+import { HttpException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { type MessageCreationAttributes, MessageRepository } from './message.repository';
 import { GatewayService, SocketEvents } from '../gateway/gateway.service';
+import { ChannelRepository } from '../channel/channel.repository';
+import { UserRepository } from '../user/user.repository';
 
 @Injectable()
 export class MessageService {
+    private readonly logger = new Logger(MessageService.name);
+
     constructor(
         private readonly messageRepository: MessageRepository,
         private readonly gateway: GatewayService,
+        private readonly channelRepository: ChannelRepository,
+        private readonly userRepository: UserRepository,
     ) {}
 
-    async createMessage(channelId: string, authorId: string, content: string) {
-        try {
-            const result = await this.messageRepository.createMessage(channelId, authorId, content);
+    async createMessage(data: MessageCreationAttributes) {
+        const channel = await this.channelRepository.getChannel(data.channelId);
+        if (!channel) {
+            throw new NotFoundException('Channel not found');
+        }
 
-            this.gateway.emitToChannel(channelId, SocketEvents.MESSAGE_CREATE, {
+        try {
+            const result = await this.messageRepository.createMessage(data);
+            const guildMembers =
+                (await this.userRepository.getGuildUsers(channel.guildId))?.map((user) => user.ID) || [];
+
+            this.gateway.emitToUsers(guildMembers, SocketEvents.MESSAGE_CREATE, {
                 id: result.id,
-                content,
-                authorId,
-                channelId,
+                ...data,
                 createdAt: new Date(),
             });
 

@@ -9,5 +9,6 @@ import { GatewayModule } from '../gateway/gateway.module';
     controllers: [ChannelController],
     providers: [ChannelService, ChannelRepository, UserRepository],
     imports: [GatewayModule],
+    exports: [ChannelRepository],
 })
 export class ChannelModule {}

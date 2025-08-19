@@ -1,5 +1,5 @@
 import { Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
-import type { Connection } from 'oracledb';
+import type { Connection, Result, ResultSet } from 'oracledb';
 import { v4 } from 'uuid';
 
 import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
@@ -37,6 +37,54 @@ export class ChannelRepository {
         } catch (error) {
             this.logger.error(error);
             throw new InternalServerErrorException('Failed to create channel');
+        }
+    }
+
+    async getChannel(id: string): Promise<Channel | null> {
+        try {
+            const result = await this.db.execute<Result<Channel>>(
+                ...sql`
+                DECLARE
+                    v_cursor SYS_REFCURSOR;
+                BEGIN
+                    PKG_CHANNEL.GET_CHANNEL(${id}, v_cursor);
+                    DBMS_SQL.RETURN_RESULT(v_cursor);
+                END;
+            `,
+                { resultSet: true },
+            );
+
+            if (!result.implicitResults || result.implicitResults.length === 0) {
+                throw new NotFoundException('Channel not found');
+            }
+
+            const rows = await (result.implicitResults[0] as ResultSet<any[]>).getRows(1);
+
+            if (!rows.length) {
+                throw new NotFoundException('Channel not found');
+            }
+
+            const [channelId, name, description, position, guildId] = rows[0];
+            return {
+                id: channelId,
+                name,
+                description,
+                position,
+                guildId,
+            } satisfies Channel;
+        } catch (error) {
+            this.logger.error(`Failed to get channel with id ${id}:`, error);
+
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+
+            // Handle the specific Oracle error codes
+            if ((error as { errorNum?: number }).errorNum === 21002) {
+                throw new NotFoundException('Channel not found');
+            }
+
+            throw new InternalServerErrorException('Failed to get channel');
         }
     }
 

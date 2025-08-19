@@ -1,15 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import { AuthenticatedUser } from 'nest-keycloak-connect';
 import { MessageService } from './message.service';
-
-class CreateMessageDto {
-    content!: string;
-}
-
-class UpdateMessageDto {
-    content!: string;
-}
-
+import { CreateMessageDto } from './dto/message.dto';
 @Controller({
     version: '1',
     path: 'guilds/:guildId/channels/:channelId/messages',
@@ -23,7 +15,11 @@ export class MessageController {
         @AuthenticatedUser() user: IReqUser,
         @Body() body: CreateMessageDto,
     ) {
-        return this.messageService.createMessage(channelId, user.sub, body.content);
+        return this.messageService.createMessage({
+            content: body.content,
+            channelId,
+            authorId: user.sub,
+        });
     }
 
     // @Get()
