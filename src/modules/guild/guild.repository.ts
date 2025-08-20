@@ -84,13 +84,9 @@ export class GuildRepository {
             const fieldsString = updateFields.join(', ');
 
             await this.db.execute(
-                `BEGIN
-                    PKG_GUILD.UPDATE_GUILD(:id, :fields);
+                ...sql`BEGIN
+                    PKG_GUILD.UPDATE_GUILD(${id}, ${fieldsString});
                 END;`,
-                {
-                    id,
-                    fields: fieldsString,
-                },
             );
 
             await this.db.commit();
@@ -105,10 +101,11 @@ export class GuildRepository {
         try {
             const result = await this.db.execute<{ cursor: oracledb.ResultSet<RefGuildDB> }>(
                 `DECLARE
-                v_cursor SYS_REFCURSOR;
-            BEGIN
-                PKG_GUILD.GET_PUBLIC_GUILDS(:cursor);
-            END;`,
+                    v_cursor SYS_REFCURSOR;
+                BEGIN
+                    PKG_GUILD.GET_PUBLIC_GUILDS(:cursor);
+                END;
+            `,
                 {
                     cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
                 },
