@@ -216,3 +216,55 @@ BEGIN
     );
 END;
 /
+
+--MESSAGE--
+CREATE OR REPLACE TRIGGER TRG_AUD_MESSAGE
+AFTER INSERT OR UPDATE OR DELETE ON MESSAGE
+FOR EACH ROW
+DECLARE
+    v_valor_antes   CLOB;
+    v_valor_despues CLOB;
+    v_operacion     VARCHAR2(10);
+    v_llave         VARCHAR2(36);
+BEGIN
+    IF INSERTING THEN
+        v_operacion := 'INSERT';
+        v_llave := :NEW.ID;
+    ELSIF UPDATING THEN
+        v_operacion := 'UPDATE';
+        v_llave := :NEW.ID;
+    ELSIF DELETING THEN
+        v_operacion := 'DELETE';
+        v_llave := :OLD.ID;
+    END IF;
+
+    IF DELETING OR UPDATING THEN
+        v_valor_antes := TO_CLOB(
+            '{"id":"' || :OLD.ID || '", "content":"' || :OLD.CONTENT ||
+            '", "authorId":"' || :OLD.AUTHOR_ID || '", "channelId":"' || :OLD.CHANNEL_ID ||
+            '", "createdAt":"' || TO_CHAR(:OLD.CREATED_AT, 'YYYY-MM-DD"T"HH24:MI:SS.FF3"Z"') || '"}'
+        );
+    END IF;
+
+    IF INSERTING OR UPDATING THEN
+        v_valor_despues := TO_CLOB(
+            '{"id":"' || :NEW.ID || '", "content":"' || :NEW.CONTENT ||
+            '", "authorId":"' || :NEW.AUTHOR_ID || '", "channelId":"' || :NEW.CHANNEL_ID ||
+            '", "createdAt":"' || TO_CHAR(:NEW.CREATED_AT, 'YYYY-MM-DD"T"HH24:MI:SS.FF3"Z"') || '"}'
+        );
+    END IF;
+
+    INSERT INTO AUDITORIA (
+        TABLA, OPERACION, USUARIO_BD, USUARIO_APP, FECHA_ACCION, LLAVE_PRIMARIA, VALOR_ANTES, VALOR_DESPUES
+    ) VALUES (
+        'MESSAGE',
+        v_operacion,
+        SYS_CONTEXT('USERENV','SESSION_USER'),
+        SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER'),
+        SYSTIMESTAMP,
+        v_llave,
+        v_valor_antes,
+        v_valor_despues
+    );
+END;
+/

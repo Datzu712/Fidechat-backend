@@ -9,6 +9,7 @@ import type { FastifyRequest } from 'fastify';
 
 import { UserService } from '@/modules/user/user.service';
 import { Logger } from '@/common/logger';
+
 @Injectable()
 export class KeycloakSyncInterceptor implements NestInterceptor {
     constructor(private readonly userService: UserService) {}
