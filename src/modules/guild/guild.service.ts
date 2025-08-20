@@ -24,4 +24,8 @@ export class GuildService {
             }
         }
     }
+
+    public async getPublicGuilds() {
+        return this.guildRepository.getPublicGuilds();
+    }
 }

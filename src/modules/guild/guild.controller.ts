@@ -1,4 +1,4 @@
-import { Body, Controller, Post, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, ValidationPipe } from '@nestjs/common';
 import { AuthenticatedUser } from 'nest-keycloak-connect';
 import { GuildDto } from './dto/guild.dto';
 import { GuildService } from './guild.service';
@@ -24,5 +24,10 @@ export class GuildController {
         body: GuildDto,
     ) {
         return this.guildService.createGuild(user.sub, body);
+    }
+
+    @Get('/public')
+    public async getPublicGuilds() {
+        return this.guildService.getPublicGuilds();
     }
 }
