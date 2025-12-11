@@ -7,29 +7,30 @@ A modern real-time chat application backend built with NestJS, Oracle Database, 
 ## Index
 
 1. [🚀 Features](#-features)
-2. [🛠️ Tech Stack](#️-tech-stack)
-3. [📋 Prerequisites](#-prerequisites)
-4. [⚡ Quick Start](#-quick-start)
+2. [🔄 Request Flow Diagram](#-request-flow-diagram)
+3. [🛠️ Tech Stack](#️-tech-stack)
+4. [📋 Prerequisites](#-prerequisites)
+5. [⚡ Quick Start](#-quick-start)
    - [1. Clone the Repository](#1-clone-the-repository)
    - [2. Install Dependencies](#2-install-dependencies)
    - [3. Environment Configuration](#3-environment-configuration)
    - [4. Start the Services](#4-start-the-services)
    - [5. Initialize the Database](#5-initialize-the-database)
    - [6. Run the Application](#6-run-the-application)
-5. [🗂️ Project Structure](#️-project-structure)
-6. [🌐 API Endpoints](#-api-endpoints)
+6. [🗂️ Project Structure](#️-project-structure)
+7. [🌐 API Endpoints](#-api-endpoints)
    - [Postman Collection](#postman-collection)
    - [Authentication](#authentication)
    - [Users](#users)
    - [Guilds](#guilds)
    - [Channels](#channels)
    - [WebSocket Events](#websocket-events)
-7. [🗄️ Database Schema](#️-database-schema)
-8. [📜 Available Scripts](#-available-scripts)
-9. [🐳 Docker Configuration](#-docker-configuration)
-   - [Starting Services](#starting-services)
-10. [🔐 Authentication Setup (Keycloak)](#-authentication-setup-keycloak)
-11. [🛠️ Troubleshooting](#️-troubleshooting)
+8. [🗄️ Database Schema](#️-database-schema)
+9. [📜 Available Scripts](#-available-scripts)
+10. [🐳 Docker Configuration](#-docker-configuration)
+    - [Starting Services](#starting-services)
+11. [🔐 Authentication Setup (Keycloak)](#-authentication-setup-keycloak)
+12. [🛠️ Troubleshooting](#️-troubleshooting)
     - [Common Issues](#common-issues)
 
 ## 🚀 Features
@@ -43,6 +44,141 @@ A modern real-time chat application backend built with NestJS, Oracle Database, 
 - **Validation**: Input validation using class-validator
 - **Docker Support**: Complete containerization with Docker Compose
 - **Kubernetes Support**: Minikube setup for local Kubernetes cluster deployment
+
+## 🔄 Request Flow Diagram
+
+This diagram illustrates how a request flows through the Fidechat application, from initial user authentication to data processing and real-time updates.
+
+```mermaid
+flowchart TB
+    %% Client Layer
+    subgraph Client["🌐 Client Layer"]
+        User["👤 Usuario"]
+        WebApp["fidechat-web<br/>(Next.js)"]
+    end
+
+    %% Authentication Layer
+    subgraph AuthLayer["🔐 Authentication Layer"]
+        Keycloak["Keycloak<br/>(:8081)"]
+        PostgreSQL["PostgreSQL<br/>(Keycloak DB)"]
+    end
+
+    %% Proxy Layer
+    subgraph ProxyLayer["🔀 Proxy Layer"]
+        Nginx["Nginx<br/>(Reverse Proxy)"]
+    end
+
+    %% Backend Layer
+    subgraph BackendLayer["⚙️ Backend Layer"]
+        NestJS["NestJS API + Fastify<br/>(:3000)"]
+        
+        subgraph Guards["🛡️ Guards & Interceptors"]
+            AuthGuard["KeycloakAuthGuard<br/>(Valida JWT)"]
+            ResourceGuard["KeycloakResourceGuard<br/>(Verifica Recursos)"]
+            RoleGuard["KeycloakRoleGuard<br/>(Verifica Roles)"]
+            SyncInterceptor["KeycloakSyncInterceptor<br/>(Sincroniza Usuario)"]
+        end
+        
+        subgraph Modules["📦 Módulos"]
+            UserModule["User Module"]
+            GuildModule["Guild Module"]
+            ChannelModule["Channel Module"]
+            MessageModule["Message Module"]
+        end
+    end
+
+    %% WebSocket Layer
+    subgraph WSLayer["🔌 WebSocket Layer"]
+        Gateway["Socket.IO Gateway<br/>(Eventos en tiempo real)"]
+    end
+
+    %% Database Layer
+    subgraph DBLayer["💾 Database Layer"]
+        Oracle["Oracle Database<br/>(PL/SQL Packages)"]
+    end
+
+    %% Flow 1: Authentication
+    User -->|"1. Accede a la web"| WebApp
+    WebApp -->|"2. Solicita autenticación"| Keycloak
+    Keycloak <-->|"Gestiona sesiones"| PostgreSQL
+    Keycloak -->|"3. Retorna JWT Token"| WebApp
+
+    %% Flow 2: API Request
+    WebApp -->|"4. Request con Bearer Token"| Nginx
+    Nginx -->|"5. Forward request"| NestJS
+    NestJS --> AuthGuard
+    
+    %% Flow 3: Validation
+    AuthGuard -->|"6. Valida JWT"| Keycloak
+    AuthGuard --> ResourceGuard
+    ResourceGuard --> RoleGuard
+    RoleGuard --> SyncInterceptor
+    
+    %% Flow 4: Sync & Processing
+    SyncInterceptor -->|"7. Sincroniza datos"| Oracle
+    SyncInterceptor --> Modules
+    
+    %% Flow 5: CRUD Operations
+    Modules -->|"8. Operaciones CRUD<br/>(PL/SQL Packages)"| Oracle
+    Oracle -->|"9. Retorna datos"| Modules
+    Modules -->|"10. Response"| NestJS
+    NestJS -->|"11. Response"| Nginx
+    Nginx -->|"12. Response"| WebApp
+
+    %% Flow 6: WebSocket
+    WebApp -.->|"Conexión WebSocket<br/>con JWT"| Gateway
+    Gateway -.->|"Valida JWT"| Keycloak
+    Gateway -.->|"Lee/Escribe datos"| Oracle
+    Gateway -.->|"Emite eventos<br/>(GUILD_CREATE, CHANNEL_CREATE, etc.)"| WebApp
+
+    %% Styling
+    classDef clientStyle fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000
+    classDef authStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef proxyStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef backendStyle fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+    classDef guardStyle fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef moduleStyle fill:#e0f2f1,stroke:#004d40,stroke-width:2px,color:#000
+    classDef wsStyle fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+    classDef dbStyle fill:#efebe9,stroke:#3e2723,stroke-width:2px,color:#000
+
+    class User,WebApp clientStyle
+    class Keycloak,PostgreSQL authStyle
+    class Nginx proxyStyle
+    class NestJS backendStyle
+    class AuthGuard,ResourceGuard,RoleGuard,SyncInterceptor guardStyle
+    class UserModule,GuildModule,ChannelModule,MessageModule moduleStyle
+    class Gateway wsStyle
+    class Oracle dbStyle
+```
+
+### 📝 Flujo Detallado
+
+#### 1️⃣ Autenticación (Steps 1-3)
+- El usuario accede a la aplicación web (fidechat-web con Next.js)
+- La aplicación redirige al usuario a Keycloak para autenticación
+- Keycloak valida las credenciales y almacena la sesión en PostgreSQL
+- Keycloak retorna un JWT Token al cliente
+
+#### 2️⃣ Request API (Steps 4-5)
+- El cliente envía una petición HTTP con el Bearer Token en el header Authorization
+- Nginx actúa como reverse proxy y redirige la petición a la API NestJS
+
+#### 3️⃣ Validación & Seguridad (Steps 6-7)
+- **KeycloakAuthGuard**: Valida el JWT Token contra Keycloak
+- **KeycloakResourceGuard**: Verifica los recursos a los que el usuario tiene acceso
+- **KeycloakRoleGuard**: Verifica los roles del usuario
+- **KeycloakSyncInterceptor**: Sincroniza los datos del usuario con Oracle DB
+
+#### 4️⃣ Procesamiento (Steps 8-12)
+- Los módulos (User, Guild, Channel, Message) procesan la solicitud
+- Se ejecutan operaciones CRUD usando PL/SQL Packages en Oracle
+- Los datos se retornan a través de la cadena: Modules → NestJS → Nginx → Cliente
+
+#### 5️⃣ WebSocket (Comunicación en Tiempo Real)
+- Los clientes establecen una conexión WebSocket con el Gateway
+- El Gateway valida el JWT Token con Keycloak
+- Se emiten eventos en tiempo real (GUILD_CREATE, CHANNEL_CREATE, etc.)
+- Los clientes conectados reciben actualizaciones instantáneas
 
 ## 🛠️ Tech Stack
 
