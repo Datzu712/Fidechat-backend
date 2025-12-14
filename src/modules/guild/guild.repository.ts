@@ -2,9 +2,9 @@ import { Inject, Injectable, InternalServerErrorException, NotFoundException } f
 import oracledb, { type Connection } from 'oracledb';
 import { v4 } from 'uuid';
 
-import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
+import { DATABASE_CONNECTION } from '@/infrastructure/database/oracle/oracle.provider';
 import { GuildDto } from './dto/guild.dto';
-import { sql } from '@/database/oracle/query-builder/sql-template';
+import { sql } from '@/infrastructure/database/oracle/query-builder/sql-template';
 import { Logger } from '@/common/logger';
 
 export interface Guild {

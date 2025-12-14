@@ -129,7 +129,7 @@ create PACKAGE pkg_sync_data AS
 END pkg_sync_data;
 /
 
-create PACKAGE PKG_GUILD AS
+CREATE OR REPLACE PACKAGE PKG_GUILD AS
     -- Public Procedures
     PROCEDURE CREATE_GUILD(P_ID IN VARCHAR2, P_NAME IN VARCHAR2, P_ICON_URL IN VARCHAR2, P_IS_PUBLIC IN NUMBER, P_OWNER_ID IN VARCHAR2);
     PROCEDURE GET_GUILD(P_ID IN VARCHAR2, CURSOR_OUT OUT SYS_REFCURSOR);
@@ -138,13 +138,29 @@ create PACKAGE PKG_GUILD AS
         P_FIELDS IN VARCHAR2
     );
     PROCEDURE DELETE_GUILD(P_ID IN VARCHAR2);
+    PROCEDURE GET_PUBLIC_GUILDS(CURSOR_OUT OUT SYS_REFCURSOR);
 
     -- Custom Exceptions
     GUILD_NOT_FOUND EXCEPTION;
 END PKG_GUILD;
 /
 
-create PACKAGE BODY PKG_GUILD AS
+CREATE OR REPLACE PACKAGE BODY PKG_GUILD AS
+
+    PROCEDURE GET_PUBLIC_GUILDS(
+        CURSOR_OUT OUT SYS_REFCURSOR
+    ) IS
+    BEGIN
+        OPEN CURSOR_OUT FOR
+            SELECT G.*
+            FROM GUILD G
+            WHERE G.IS_PUBLIC = 1;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20008, 'No public guilds found.');
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-20009, 'Error while getting public guilds: ' || SQLERRM);
+    END GET_PUBLIC_GUILDS;
 
     PROCEDURE CREATE_GUILD(P_ID IN VARCHAR2,P_NAME IN VARCHAR2, P_ICON_URL IN VARCHAR2, P_IS_PUBLIC IN NUMBER, P_OWNER_ID IN VARCHAR2) IS
     BEGIN
@@ -201,22 +217,6 @@ create PACKAGE BODY PKG_GUILD AS
     END DELETE_GUILD;
 
 END PKG_GUILD;
-/
-
-create PACKAGE PKG_USER AS
-    -- Public Procedures & functions
-    PROCEDURE CREATE_USER(P_ID IN VARCHAR2, P_USERNAME IN VARCHAR2, P_EMAIL IN VARCHAR2, P_IS_BOT IN NUMBER, P_AVATAR_URL IN VARCHAR2);
-    PROCEDURE GET_USER(P_ID IN VARCHAR2, CURSOR_OUT OUT SYS_REFCURSOR);
-    FUNCTION GET_USER_JSON(P_ID IN VARCHAR2) RETURN CLOB;
-    PROCEDURE UPDATE_USER(
-        P_ID IN VARCHAR2,
-        P_FIELDS IN VARCHAR2
-    );
-    PROCEDURE DELETE_USER(P_ID IN VARCHAR2);
-
-    -- Custom Exceptions
-    USER_NOT_FOUND EXCEPTION;
-END PKG_USER;
 /
 
 create PACKAGE BODY pkg_sync_data AS
@@ -342,7 +342,80 @@ create PACKAGE BODY pkg_sync_data AS
 END pkg_sync_data;
 /
 
-create PACKAGE BODY PKG_USER AS
+CREATE OR REPLACE PACKAGE PKG_USER AS
+    -- Public Procedures & functions
+    PROCEDURE CREATE_USER(P_ID IN VARCHAR2, P_USERNAME IN VARCHAR2, P_EMAIL IN VARCHAR2, P_IS_BOT IN NUMBER, P_AVATAR_URL IN VARCHAR2);
+    PROCEDURE GET_USER(P_ID IN VARCHAR2, CURSOR_OUT OUT SYS_REFCURSOR);
+    FUNCTION GET_USER_JSON(P_ID IN VARCHAR2) RETURN CLOB;
+    PROCEDURE UPDATE_USER(
+        P_ID IN VARCHAR2,
+        P_FIELDS IN VARCHAR2
+    );
+    PROCEDURE DELETE_USER(P_ID IN VARCHAR2);
+    PROCEDURE SP_UPSERT_USER(
+        p_id IN VARCHAR2,
+        p_username IN VARCHAR2,
+        p_email IN VARCHAR2,
+        p_avatar_url IN VARCHAR2,
+        p_default_guild_id IN VARCHAR2 DEFAULT NULL,
+        was_added_to_guild OUT NUMBER,
+        guild_id OUT VARCHAR2
+    );
+
+    -- Custom Exceptions
+    USER_NOT_FOUND EXCEPTION;
+END PKG_USER;
+/
+
+CREATE OR REPLACE PACKAGE BODY PKG_USER AS
+
+    PROCEDURE SP_UPSERT_USER(
+        p_id IN VARCHAR2,
+        p_username IN VARCHAR2,
+        p_email IN VARCHAR2,
+        p_avatar_url IN VARCHAR2,
+        p_default_guild_id IN VARCHAR2 DEFAULT NULL,
+        was_added_to_guild OUT NUMBER,
+        guild_id OUT VARCHAR2
+    )
+    IS
+        v_exists NUMBER;
+    BEGIN
+        was_added_to_guild := 0;
+        guild_id := NULL;
+
+        MERGE INTO APP_USER target
+        USING (SELECT p_id as id, p_username as username, p_email as email, p_avatar_url as avatar_url FROM dual) source
+        ON (target.id = source.id)
+        WHEN MATCHED THEN
+            UPDATE SET
+                username = source.username,
+                email = source.email,
+                avatar_url = source.avatar_url
+        WHEN NOT MATCHED THEN
+            INSERT (id, username, email, avatar_url)
+            VALUES (source.id, source.username, source.email, source.avatar_url);
+
+        IF p_default_guild_id IS NOT NULL THEN
+            SELECT COUNT(*) INTO v_exists
+            FROM GUILD_USERS
+            WHERE USER_ID = p_id AND GUILD_ID = p_default_guild_id;
+
+            IF v_exists = 0 THEN
+                INSERT INTO GUILD_USERS(GUILD_ID, USER_ID)
+                VALUES (p_default_guild_id, p_id);
+
+                was_added_to_guild := 1;
+                guild_id := p_default_guild_id;
+            END IF;
+        END IF;
+
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE;
+    END SP_UPSERT_USER;
 
     PROCEDURE CREATE_USER(P_ID IN VARCHAR2, P_USERNAME IN VARCHAR2, P_EMAIL IN VARCHAR2, P_IS_BOT IN NUMBER, P_AVATAR_URL IN VARCHAR2) IS
     BEGIN
@@ -371,7 +444,7 @@ create PACKAGE BODY PKG_USER AS
             'id' VALUE ID,
             'username' VALUE USERNAME,
             'email' VALUE EMAIL,
-           'isBot' VALUE IS_BOT,
+            'isBot' VALUE IS_BOT,
             'avatarUrl' VALUE AVATAR_URL
         ) INTO v_json
         FROM APP_USER
@@ -528,3 +601,148 @@ BEGIN
 END;
 /
 
+
+/*
+Error Codes Reference:
+-22001: Failed to create a new message
+-22002: Message not found when trying to retrieve it
+-22003: Error occurred while fetching message data
+-22004: Message not found when trying to update it
+-22005: Error occurred while updating message data
+-22006: Message not found when trying to delete it
+-22007: Error occurred while deleting message data
+-22008: Error occurred while fetching channel messages
+*/
+
+CREATE OR REPLACE PACKAGE PKG_MESSAGES AS
+    -- Public Procedures
+    PROCEDURE CREATE_MESSAGE(
+        P_ID IN VARCHAR2,
+        P_CONTENT IN VARCHAR2,
+        P_AUTHOR_ID IN VARCHAR2,
+        P_CHANNEL_ID IN VARCHAR2,
+        P_CREATED_AT IN TIMESTAMP
+    );
+
+    PROCEDURE GET_MESSAGE(
+        P_ID IN VARCHAR2,
+        CURSOR_OUT OUT SYS_REFCURSOR
+    );
+
+    PROCEDURE GET_CHANNEL_MESSAGES(
+        P_CHANNEL_ID IN VARCHAR2,
+        P_LIMIT IN NUMBER DEFAULT 50,
+        P_OFFSET IN NUMBER DEFAULT 0,
+        CURSOR_OUT OUT SYS_REFCURSOR
+    );
+
+    PROCEDURE UPDATE_MESSAGE(
+        P_ID IN VARCHAR2,
+        P_CONTENT IN VARCHAR2
+    );
+
+    PROCEDURE DELETE_MESSAGE(
+        P_ID IN VARCHAR2
+    );
+
+    -- Custom Exceptions
+    MESSAGE_NOT_FOUND EXCEPTION;
+END PKG_MESSAGES;
+/
+
+CREATE OR REPLACE PACKAGE BODY PKG_MESSAGES AS
+
+    PROCEDURE CREATE_MESSAGE(
+        P_ID IN VARCHAR2,
+        P_CONTENT IN VARCHAR2,
+        P_AUTHOR_ID IN VARCHAR2,
+        P_CHANNEL_ID IN VARCHAR2,
+        P_CREATED_AT IN TIMESTAMP
+    ) IS
+    BEGIN
+        INSERT INTO MESSAGE (ID, CONTENT, AUTHOR_ID, CHANNEL_ID, CREATED_AT)
+        VALUES (P_ID, P_CONTENT, P_AUTHOR_ID, P_CHANNEL_ID, P_CREATED_AT);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Error creating MESSAGE: ' || SQLERRM);
+    END CREATE_MESSAGE;   
+    
+    PROCEDURE GET_MESSAGE(
+        P_ID IN VARCHAR2,
+        CURSOR_OUT OUT SYS_REFCURSOR
+    ) IS
+    BEGIN
+        OPEN CURSOR_OUT FOR
+            SELECT M.*
+            FROM MESSAGE M
+            WHERE M.ID = P_ID;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-22002, 'Message not found.');
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-22003, 'Error while getting message: ' || SQLERRM);
+    END GET_MESSAGE;
+
+    PROCEDURE GET_CHANNEL_MESSAGES(
+        P_CHANNEL_ID IN VARCHAR2,
+        P_LIMIT IN NUMBER DEFAULT 50,
+        P_OFFSET IN NUMBER DEFAULT 0,
+        CURSOR_OUT OUT SYS_REFCURSOR
+    ) IS
+    BEGIN
+        OPEN CURSOR_OUT FOR
+            SELECT M.*, U.USERNAME AS AUTHOR_USERNAME, U.AVATAR_URL AS AUTHOR_AVATAR
+            FROM (
+                SELECT a.*, ROWNUM rnum
+                FROM (
+                    SELECT *
+                    FROM MESSAGE
+                    WHERE CHANNEL_ID = P_CHANNEL_ID
+                    ORDER BY ID DESC
+                ) a WHERE ROWNUM <= P_OFFSET + P_LIMIT
+            ) M
+            JOIN APP_USER U ON M.AUTHOR_ID = U.ID
+            WHERE rnum > P_OFFSET
+            ORDER BY M.ID DESC;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-22008, 'Error while getting channel messages: ' || SQLERRM);
+    END GET_CHANNEL_MESSAGES;
+
+    PROCEDURE UPDATE_MESSAGE(
+        P_ID IN VARCHAR2,
+        P_CONTENT IN VARCHAR2
+    ) IS
+    BEGIN
+        UPDATE MESSAGE
+        SET CONTENT = P_CONTENT
+        WHERE ID = P_ID;
+
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE MESSAGE_NOT_FOUND;
+        END IF;
+    EXCEPTION
+        WHEN MESSAGE_NOT_FOUND THEN
+            RAISE_APPLICATION_ERROR(-22004, 'Could not update MESSAGE. Message not found for ID: ' || P_ID);
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-22005, 'Error updating MESSAGE: ' || SQLERRM);
+    END UPDATE_MESSAGE;
+
+    PROCEDURE DELETE_MESSAGE(
+        P_ID IN VARCHAR2
+    ) IS
+    BEGIN
+        DELETE FROM MESSAGE WHERE ID = P_ID;
+
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE MESSAGE_NOT_FOUND;
+        END IF;
+    EXCEPTION
+        WHEN MESSAGE_NOT_FOUND THEN
+            RAISE_APPLICATION_ERROR(-22006, 'Message not found for deletion.');
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-22007, 'Error deleting message: ' || SQLERRM);
+    END DELETE_MESSAGE;
+
+END PKG_MESSAGES;
+/

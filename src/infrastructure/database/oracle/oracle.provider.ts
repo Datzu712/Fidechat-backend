@@ -12,6 +12,8 @@ export const OracleProvider = {
         const password = configService.get<string>('ORACLE_PWD');
         const oracleServiceName = configService.get<string>('ORACLE_SERVICE_NAME');
 
+        Logger.log(`Connecting to Oracle DB at ${oracleServiceName} as ${user}`, 'DatabaseModule');
+
         let startTime = Date.now();
         const connection = await oracledb.getConnection({
             user,

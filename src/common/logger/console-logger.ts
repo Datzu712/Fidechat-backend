@@ -1,11 +1,10 @@
 // TODO: move to pino logger
 
-import { blue, cyan, green, magenta, red, reset as resetColor, yellow } from './constants/colors.js';
+import { blue, cyan, green, magenta, red, reset as resetColor, yellow } from './constants/colors';
 import { createWriteStream, existsSync, mkdirSync, type WriteStream } from 'node:fs';
 
 import type { DeepRequired } from 'ts-essentials';
 import { inspect } from 'node:util';
-import type { MessageLogExpressionsKey } from './interfaces/logMessageKeywords';
 import type { LogLevels } from './interfaces/logLevels';
 import type { AbstractLogger } from './interfaces/abstract-logger';
 import type { logMessage } from './interfaces/logMessage';

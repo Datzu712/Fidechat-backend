@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Param, Post, ValidationPipe } from '@nestjs/common';
 import { AuthenticatedUser } from 'nest-keycloak-connect';
 import { ChannelDto } from './dto/channel.dto';
 import { ChannelService } from './channel.service';

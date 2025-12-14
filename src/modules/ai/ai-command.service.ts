@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { Logger } from '@/common/logger';
 import { UserRepository } from '../user/user.repository';
-import { AppUser } from '@/database/oracle/types/user';
+import { AppUser } from '@/infrastructure/database/oracle/types/user';
 import { Message } from '../message/message.repository';
 
 export interface AICommandResult {

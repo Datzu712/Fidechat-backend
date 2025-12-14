@@ -1,15 +1,15 @@
 import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import oracledb, { Connection } from 'oracledb';
 import { v4 } from 'uuid';
-import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
-import { sql } from '@/database/oracle/query-builder/sql-template';
+import { DATABASE_CONNECTION } from '@/infrastructure/database/oracle/oracle.provider';
+import { sql } from '@/infrastructure/database/oracle/query-builder/sql-template';
 
 export interface Message {
     id: string;
     content: string;
     authorId: string;
     channelId: string;
-    createdAt: Date;
+    createdAt?: Date;
 }
 
 export interface RefMessageDatabase {
@@ -28,7 +28,7 @@ export class MessageRepository {
 
     constructor(@Inject(DATABASE_CONNECTION) private readonly db: Connection) {}
 
-    async createMessage({ channelId, authorId, content, createdAt }: MessageCreationAttributes) {
+    async createMessage({ channelId, authorId, content, createdAt = new Date() }: MessageCreationAttributes) {
         try {
             const id = v4();
             await this.db.execute(

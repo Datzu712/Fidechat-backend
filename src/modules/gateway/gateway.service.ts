@@ -92,6 +92,9 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
         });
     }
 
+    /**
+     * todo: refuse handshake if no token is provided instead of disconnecting after connection is established
+     */
     public handleConnection(socket: SocketClient) {
         let token: string | undefined = socket.handshake.auth.token;
         if (!token) {
@@ -114,7 +117,6 @@ export class GatewayService implements OnGatewayConnection, OnModuleDestroy, OnG
                 complete: true,
             },
             (err: jwt.VerifyErrors | null, decoded: jwt.Jwt | undefined) => {
-                console.log(decoded);
                 if (err || !decoded?.payload) {
                     this.logger.error(err);
                     this.logger.debug(decoded);

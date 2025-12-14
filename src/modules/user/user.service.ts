@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { UserRepository } from './user.repository';
 import { GatewayService, SocketEvents } from '../gateway/gateway.service';
-import { AppUser, GuildUser } from '@/database/oracle/types/user';
+import { AppUser, GuildUser } from '@/infrastructure/database/oracle/types/user';
 
 @Injectable()
 export class UserService {

@@ -2,9 +2,9 @@ import { Inject, Injectable, InternalServerErrorException, Logger, NotFoundExcep
 import type { Connection, Result, ResultSet } from 'oracledb';
 import { v4 } from 'uuid';
 
-import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
+import { DATABASE_CONNECTION } from '@/infrastructure/database/oracle/oracle.provider';
 import { ChannelDto } from './dto/channel.dto';
-import { sql } from '@/database/oracle/query-builder/sql-template';
+import { sql } from '@/infrastructure/database/oracle/query-builder/sql-template';
 
 export interface Channel {
     id: string;

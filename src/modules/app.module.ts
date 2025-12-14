@@ -8,7 +8,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 
 import { validateEnv } from '@/common/utils/env.validation';
-import { DatabaseModule } from '@/database/database.module';
+import { DatabaseModule } from '@/infrastructure/database/database.module';
 import { ChannelModule } from './channel/channel.module';
 import { KeycloakModule } from './auth/keycloak/keycloak.module';
 import { KeycloakSyncInterceptor } from './auth/keycloak/keycloak-sync.interceptor';

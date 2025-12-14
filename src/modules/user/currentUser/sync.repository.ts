@@ -1,8 +1,8 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import oracledb from 'oracledb';
 
-import { DATABASE_CONNECTION } from '@/database/oracle/oracle.provider';
-import { sql } from '@/database/oracle/query-builder/sql-template';
+import { DATABASE_CONNECTION } from '@/infrastructure/database/oracle/oracle.provider';
+import { sql } from '@/infrastructure/database/oracle/query-builder/sql-template';
 import { Logger } from '@/common/logger';
 import { GatewayService } from '@/modules/gateway/gateway.service';
 

@@ -1,4 +1,4 @@
-import type { AppUser, GuildUser } from '@/database/oracle/types/user';
+import type { AppUser, GuildUser } from '@/infrastructure/database/oracle/types/user';
 import type { Channel } from '@/modules/channel/channel.repository';
 import type { Guild } from '@/modules/guild/guild.repository';
 import type { Message } from '@/modules/message/message.repository';

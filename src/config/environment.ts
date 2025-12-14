@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-magic-numbers -- Magic numbers are acceptable in this configuration file because all are just constants */
 import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export enum Environment {
@@ -7,6 +6,10 @@ export enum Environment {
     Test = 'test',
 }
 export class EnvironmentVariables implements IEnvironmentVariables {
+    DEFAULT_GUILD_ID?: string | undefined;
+    KEYCLOAK_ADMIN!: string;
+    KEYCLOAK_ADMIN_PASSWORD!: string;
+
     @IsString()
     CORS_ORIGIN!: string;
 
