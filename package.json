@@ -65,9 +65,12 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-fastify": "^11.1.12",
     "axios": "^1.6.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
     "fastify": "^5.7.1",
     "next": "~16.0.1",
     "react": "^19.0.0",
