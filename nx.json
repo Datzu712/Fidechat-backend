@@ -36,7 +36,9 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["apps/api-e2e/**/*"]
+      "exclude": [
+        "apps/api-e2e/**/*"
+      ]
     },
     {
       "plugin": "@nx/webpack/plugin",
