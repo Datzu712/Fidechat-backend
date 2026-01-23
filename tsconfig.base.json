@@ -44,5 +44,8 @@
   "exclude": [
     "node_modules",
     "tmp"
+  ],
+  "include": [
+    "./prisma.config.ts"
   ]
 }

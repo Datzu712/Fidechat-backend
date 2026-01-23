@@ -1,0 +1,71 @@
+name: fidechat
+
+services:
+    postgres:
+        image: postgres:18
+        restart: always
+        env_file:
+            - .env
+        environment:
+            POSTGRES_USER: ${DB_USERNAME:-root} # ${XYZ_VAR:?error} would be better btw but this is just a demo so whatever
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
+            POSTGRES_DB: ${DB_NAME:-fidechat} # DB_NAME -> App db
+        ports:
+            - "${DB_PORT:-5432}:5432"
+        volumes:
+            - pg_data:/var/lib/postgresql/18/docker
+            - ./initdb:/docker-entrypoint-initdb.d
+        networks:
+            - fidechat-network
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready",
+                    "-d",
+                    "${DB_NAME:-fidechat}",
+                    "-U",
+                    "${DB_USERNAME:-root}",
+                ]
+            interval: 30s
+            timeout: 60s
+            retries: 5
+            start_period: 80s
+
+    keycloak:
+        image: quay.io/keycloak/keycloak:latest
+        restart: always
+        env_file:
+            - .env
+        environment:
+            KC_DB: postgres
+            KC_DB_USERNAME: ${DB_USERNAME:-root}
+            KC_DB_PASSWORD: ${DB_PASSWORD:-root}
+            KC_HEALTH_ENABLED: "true"
+            KC_METRICS_ENABLED: "true"
+            KC_DB_URL: ${KC_DB_URL:-jdbc:postgresql://postgres:5432/${KC_DB_NAME:-keycloak}} # Keycloak db is created inside initdb/01-initdb.sql
+
+            # Production settings
+            KC_HOSTNAME: ${KC_HOSTNAME:-localhost}
+            KC_HOSTNAME_STRICT: "true"
+            KC_HTTP_ENABLED: "true"
+            KC_HOSTNAME_STRICT_HTTPS: "true"
+            KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-fidechat}
+            KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:-fidechat_pwd}
+            KC_HTTP_RELATIVE_PATH: ${KC_HTTP_RELATIVE_PATH:-/}
+            KC_PROXY: edge
+        depends_on:
+            postgres:
+                condition: service_healthy
+        ports:
+            - "${KC_PORT:-8080}:8080"
+        command: start
+        networks:
+            - fidechat-network
+
+networks:
+    fidechat-network:
+        external: true
+
+volumes:
+    pg_data:
