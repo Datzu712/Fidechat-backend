@@ -1,12 +1,4 @@
-import nextEslintPluginNext from '@next/eslint-plugin-next';
-import nx from '@nx/eslint-plugin';
-import baseConfig from '../../eslint.config.mjs';
+import { nextJsConfig } from "@repo/eslint-config/next-js";
 
-export default [
-  { plugins: { '@next/next': nextEslintPluginNext } },
-  ...baseConfig,
-  ...nx.configs['flat/react-typescript'],
-  {
-    ignores: ['.next/**/*'],
-  },
-];
+/** @type {import("eslint").Linter.Config} */
+export default nextJsConfig;

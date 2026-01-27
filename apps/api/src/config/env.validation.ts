@@ -2,6 +2,7 @@ import { plainToInstance } from 'class-transformer';
 import {
 	IsEnum,
 	IsNumber,
+	IsString,
 	validateSync,
 	ValidatorOptions,
 } from 'class-validator';
@@ -19,6 +20,9 @@ class EnvironmentVariables implements IEnvironmentVariables {
 
 	@IsEnum(Environment)
 	NODE_ENV!: 'development' | 'production' | 'test';
+
+	@IsString()
+	DATABASE_URL: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

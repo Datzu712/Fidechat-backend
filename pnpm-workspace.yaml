@@ -1,9 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+
 onlyBuiltDependencies:
   - '@nestjs/core'
-  - '@parcel/watcher'
-  - '@swc/core'
-  - esbuild
-  - less
-  - nx
+  - '@prisma/engines'
+  - prisma
   - sharp
-  - unrs-resolver
