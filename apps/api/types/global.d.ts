@@ -1,15 +1,10 @@
-export interface IEnvironmentVariables {
-    NODE_ENV: 'development' | 'production' | 'test';
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import type { IEnvironmentVariables } from '@/config/env';
 
-    // Database
-    DATABASE_URL: string;
-
-    // Application
-    HTTP_PORT?: number;
-
-    // Keycloak
-    KEYCLOAK_BASE_URL: string;
-    KEYCLOAK_ADMIN_USERNAME: string;
-    KEYCLOAK_ADMIN_PASSWORD: string;
-    KEYCLOAK_REALM: string;
+declare global {
+	namespace NodeJS {
+		interface ProcessEnv extends IEnvironmentVariables {}
+	}
 }
+
+export {};
