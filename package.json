@@ -41,7 +41,7 @@
     "dayjs": "^1.11.13",
     "dotenv": "^17.2.1",
     "eslint-config-love": "^121.0.0",
-    "fastify": "^5.4.0",
+    "fastify": "^5.8.5",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.2.0",
     "keycloak-connect": "^26.1.1",
